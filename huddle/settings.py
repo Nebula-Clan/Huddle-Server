@@ -83,7 +83,7 @@ DATABASES = {
 
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
 
-        'NAME': 'Huddle',
+        'NAME': os.getenv('DB_NAME'),
 
         'USER': os.getenv('POSTGRES_USER'),
 
