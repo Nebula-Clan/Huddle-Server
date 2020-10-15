@@ -137,3 +137,17 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
+
+#Authentication
+
+AUTH_USER_MODEL = 'authentication.User'
+import datetime
+ACCESS_TOKEN_EXPIRE_TIME = datetime.timedelta(days = 0, hours=2, minutes=0)
+REFRESH_TOKEN_EXPIRE_TIME = datetime.timedelta(days = 2, hours=0, minutes=0)
+
+#REST framework 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'authentication.authenticators.JWTAuthenticator',
+    )
+}
