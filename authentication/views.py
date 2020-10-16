@@ -7,7 +7,10 @@ from .serializers import UserSerializer
 from .utils import *
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.conf import settings
+from .validators import *
+
 # Create your views here.
+
 @api_view(['GET'])
 def login_view(request):
     User = get_user_model()
@@ -33,6 +36,59 @@ def login_view(request):
     refresh_token = generate_refresh_token(user)
 
     return JsonResponse({"user" : serialized_user, "acess_token": access_token, "refresh_token": refresh_token})
+
+
+def register_view(request):
+    if request.method == 'POST':
+    
+        first_name = request.POST['first_name']
+        last_name = request.POST['last_name']
+        username = request.POST['username']
+        email = request.POST['email']
+        password1 = request.POST['password1']
+        password2 = request.POST['password2']
+
+        to_create_user = User(first_name = first_name, last_name = last_name, username = username, email =  email)
+        to_create_user.set_password(password1)
+        serialized_user = UserSerializer(to_create_user).data
+
+        ALLOW_SHORT_PASSWORD = False
+        ALLOW_SHORT_USERNAME = False
+        MPL = 8 # Minimum password length
+        MUL = 5 # Minimum username length
+
+        User = get_user_model()
+        
+        if first_name == "" or last_name == "" or username == "" or email == "" or password1 == "":
+            return JsonResponse({"user" : serialized_user, "message" : "All fields are required"})
+
+        elif password1 != password2:
+            return JsonResponse({"user" : serialized_user, "message" : "Passwords are not same"})
+        
+        elif (ALLOW_SHORT_PASSWORD) and (len(password1) < MPL):
+            return JsonResponse({"user" : serialized_user, "message" : f"Password must have at least {MPL} characters"})
+        
+        elif (ALLOW_SHORT_USERNAME) and (len(username) < MUL):
+            return JsonResponse({"user" : serialized_user, "message" : f"Username must have at least {MUL} characters"})
+        
+        elif not is_valid_password(password1):
+            return JsonResponse({"user" : serialized_user, "message" : "Password can only contains alphabets, numbers"})
+        
+        elif not is_valid_username(username):
+            return JsonResponse({"user" : serialized_user, "message" : "Username can only contains alphabets, numbers, _"})
+        
+        elif User.objects.filter(username = username).exists():
+            return JsonResponse({"user" : serialized_user, "message" : "Username already is taken"})
+        
+        elif User.objects.filter(email = email).exists():
+            return JsonResponse({"user" : serialized_user, "message" : "User with email already exists"})
+        
+        else:
+            to_create_user.save()
+            return JsonResponse({"user" : serialized_user, "message" : "User created successfuly"})
+    else:
+        pass
+        # return render
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
