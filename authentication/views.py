@@ -8,17 +8,12 @@ from .utils import *
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.conf import settings
 # Create your views here.
-@api_view(['GET'])
+@api_view(['POST'])
 def login_view(request):
     User = get_user_model()
-    username = request.data.get('username')
-    password = request.data.get('password')
-    user2 = UserSerializer(data=request.data)
+    username = request.POST['username']
+    password = request.POST['password']
     
-    if(user2.is_valid()):
-        user2 = user2.save()
-        user2.set_password(user2.password)
-
     if (username is None) or (password is None):
         raise exceptions.AuthenticationFailed("username password required!")
     user = User.objects.filter(username= username).first()
