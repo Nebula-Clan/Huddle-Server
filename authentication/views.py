@@ -31,7 +31,7 @@ def login_view(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def something(request):
+def user(request):
     user = request.user
     serialized_user = UserSerializer(user).data
     return JsonResponse({"user" : serialized_user})
