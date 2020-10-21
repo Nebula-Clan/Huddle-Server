@@ -68,21 +68,6 @@ def register_view(request):
         if first_name == "" or last_name == "" or username == "" or email == "" or password1 == "":
             return JsonResponse({"user" : serialized_user, "message" : "All fields are required"})
 
-        elif password1 != password2:
-            return JsonResponse({"user" : serialized_user, "message" : "Passwords are not same"})
-        
-        elif (ALLOW_SHORT_PASSWORD) and (len(password1) < MPL):
-            return JsonResponse({"user" : serialized_user, "message" : f"Password must have at least {MPL} characters"})
-        
-        elif (ALLOW_SHORT_USERNAME) and (len(username) < MUL):
-            return JsonResponse({"user" : serialized_user, "message" : f"Username must have at least {MUL} characters"})
-        
-        elif not is_valid_password(password1):
-            return JsonResponse({"user" : serialized_user, "message" : "Invalid password"})
-        
-        elif not is_valid_username(username):
-            return JsonResponse({"user" : serialized_user, "message" : "Username can only contains alphabets, numbers, _"})
-        
         elif User.objects.filter(username = username).exists():
             return JsonResponse({"user" : serialized_user, "message" : "Username already is taken"})
         
@@ -92,9 +77,7 @@ def register_view(request):
         else:
             to_create_user.save()
             return JsonResponse({"user" : serialized_user, "message" : "User created successfuly"})
-    else:
-        pass
-        # return render
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
