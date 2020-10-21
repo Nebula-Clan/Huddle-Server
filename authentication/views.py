@@ -37,18 +37,26 @@ def login_view(request):
 
     return JsonResponse({"user" : serialized_user, "acess_token": access_token, "refresh_token": refresh_token})
 
-
+@api_view(['POST'])
+@permission_classes([AllowAny])
 def register_view(request):
     if request.method == 'POST':
     
-        first_name = request.POST['first_name']
-        last_name = request.POST['last_name']
-        username = request.POST['username']
-        email = request.POST['email']
-        password1 = request.POST['password1']
-        password2 = request.POST['password2']
+        first_name = request.data.get('first_name')
+        last_name = request.data.get('last_name')
+        username = request.data.get('username')
+        email = request.data.get('email')
+        password1 = request.data.get('password1')
+        password2 = request.data.get('password2')
 
-        to_create_user = User(first_name = first_name, last_name = last_name, username = username, email =  email)
+        User = get_user_model()
+
+        if User.objects.all().count != 0:
+            last_id = User.objects.last().id
+        else:
+            last_id = 0
+        to_create_id = last_id + 1
+        to_create_user = User(id = to_create_id, first_name = first_name, last_name = last_name, username = username, email =  email)
         to_create_user.set_password(password1)
         serialized_user = UserSerializer(to_create_user).data
 
@@ -57,8 +65,6 @@ def register_view(request):
         MPL = 8 # Minimum password length
         MUL = 5 # Minimum username length
 
-        User = get_user_model()
-        
         if first_name == "" or last_name == "" or username == "" or email == "" or password1 == "":
             return JsonResponse({"user" : serialized_user, "message" : "All fields are required"})
 
@@ -72,7 +78,7 @@ def register_view(request):
             return JsonResponse({"user" : serialized_user, "message" : f"Username must have at least {MUL} characters"})
         
         elif not is_valid_password(password1):
-            return JsonResponse({"user" : serialized_user, "message" : "Password can only contains alphabets, numbers"})
+            return JsonResponse({"user" : serialized_user, "message" : "Invalid password"})
         
         elif not is_valid_username(username):
             return JsonResponse({"user" : serialized_user, "message" : "Username can only contains alphabets, numbers, _"})
