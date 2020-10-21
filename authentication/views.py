@@ -27,7 +27,7 @@ def login_view(request):
     access_token = generate_access_token(user)
     refresh_token = generate_refresh_token(user)
 
-    return JsonResponse({"user" : serialized_user, "acess_token": access_token, "refresh_token": refresh_token})
+    return JsonResponse({"user" : serialized_user, "access_token": access_token, "refresh_token": refresh_token})
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
