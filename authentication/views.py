@@ -10,18 +10,17 @@ from django.conf import settings
 from .validators import *
 
 # Create your views here.
+<<<<<<< HEAD
 
 @api_view(['GET'])
+=======
+@api_view(['POST'])
+>>>>>>> c9efe8d6759daebcd068a3fd05df486c293b8580
 def login_view(request):
     User = get_user_model()
-    username = request.data.get('username')
-    password = request.data.get('password')
-    user2 = UserSerializer(data=request.data)
+    username = request.POST['username']
+    password = request.POST['password']
     
-    if(user2.is_valid()):
-        user2 = user2.save()
-        user2.set_password(user2.password)
-
     if (username is None) or (password is None):
         raise exceptions.AuthenticationFailed("username password required!")
     user = User.objects.filter(username= username).first()
@@ -35,7 +34,7 @@ def login_view(request):
     access_token = generate_access_token(user)
     refresh_token = generate_refresh_token(user)
 
-    return JsonResponse({"user" : serialized_user, "acess_token": access_token, "refresh_token": refresh_token})
+    return JsonResponse({"user" : serialized_user, "access_token": access_token, "refresh_token": refresh_token})
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -81,7 +80,7 @@ def register_view(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def something(request):
+def user(request):
     user = request.user
     serialized_user = UserSerializer(user).data
     return JsonResponse({"user" : serialized_user})
