@@ -29,7 +29,7 @@ def login_view(request):
     access_token = generate_access_token(user)
     refresh_token = generate_refresh_token(user)
 
-    return JsonResponse({"user" : serialized_user, "access_token": access_token, "refresh_token": refresh_token})
+    return JsonResponse({"access_token": access_token, "refresh_token": refresh_token})
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
