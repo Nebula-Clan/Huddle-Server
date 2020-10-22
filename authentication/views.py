@@ -3,6 +3,7 @@ from rest_framework.decorators import api_view, permission_classes
 from django.http.response import JsonResponse
 from django.contrib.auth import get_user_model
 from rest_framework import exceptions
+from django.contrib.auth.hashers import check_password
 from .serializers import UserSerializer
 from .utils import *
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -22,7 +23,7 @@ def login_view(request):
     if user is None:
         raise exceptions.AuthenticationFailed("User not found!")
    
-    if not(user.password == password):
+    if not User.check_password(user, password):
         raise exceptions.AuthenticationFailed("Wrong password!")
     
     serialized_user = UserSerializer(user).data
@@ -40,8 +41,7 @@ def register_view(request):
         last_name = request.data.get('last_name')
         username = request.data.get('username')
         email = request.data.get('email')
-        password1 = request.data.get('password1')
-        password2 = request.data.get('password2')
+        password = request.data.get('password')
 
         User = get_user_model()
 
@@ -51,7 +51,7 @@ def register_view(request):
             last_id = 0
         to_create_id = last_id + 1
         to_create_user = User(id = to_create_id, first_name = first_name, last_name = last_name, username = username, email =  email)
-        to_create_user.set_password(password1)
+        to_create_user.set_password(password)
         serialized_user = UserSerializer(to_create_user).data
 
         ALLOW_SHORT_PASSWORD = False
@@ -59,7 +59,7 @@ def register_view(request):
         MPL = 8 # Minimum password length
         MUL = 5 # Minimum username length
 
-        if first_name == "" or last_name == "" or username == "" or email == "" or password1 == "":
+        if first_name == "" or last_name == "" or username == "" or email == "" or password == "":
             return JsonResponse({"user" : serialized_user, "message" : "All fields are required"})
 
         elif User.objects.filter(username = username).exists():
