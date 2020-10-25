@@ -45,7 +45,7 @@ def register_view(request):
 
         User = get_user_model()
 
-        if User.objects.all().count != 0:
+        if User.objects.all().count() != 0:
             last_id = User.objects.last().id
         else:
             last_id = 0
