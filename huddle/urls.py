@@ -19,9 +19,14 @@ import authentication.urls as auth_urls
 import likes.urls as likes_urls
 import user_profile.urls as profile_urls
 from django.conf.urls import url
+from . import settings
+from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     url(r'^api/auth/', include(auth_urls)),
     url(r'^api/likes/', include(likes_urls)),
     url(r'^api/profile/', include(profile_urls)),
 ]
+
+if(settings.DEBUG):
+    urlpatterns +=  static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
