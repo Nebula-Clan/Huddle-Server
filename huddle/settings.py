@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'authentication',
     'corsheaders',
     'likes',
+    'user_profile'
 ]
 
 MIDDLEWARE = [
