@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'user_profile',
     'posts',
     'search',
+    'comment'
 ]
 
 MIDDLEWARE = [
