@@ -16,8 +16,12 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 import authentication.urls as auth_urls
+import posts.urls as posts_urls
+import search.urls as search_urls
 from django.conf.urls import url
 urlpatterns = [
     path('admin/', admin.site.urls),
     url(r'^api/auth/', include(auth_urls))
+    url(r'^api/search/', include(posts_urls))
+    url(r'^api/posts/', include(search_urls))
 ]
