@@ -4,6 +4,7 @@ from .models import Like
 from authentication.models import User
 from posts.models import Post
 from authentication.serializers import UserSerializer
+from posts.serializer import PostSerializer
 from .serializers import LikeSerializer
 from django.http import JsonResponse
 from http import HTTPStatus
@@ -13,12 +14,12 @@ def get_likes(request):
     post = Post.objects.get(id=post_id)
     if(post is None):
         return JsonResponse({'message' : "Post not found!"}, status=HTTPStatus.NOT_FOUND)
-    likes = Like.objects.filter(post_id=post_id)
+    likes = Like.objects.filter(post=post_id)
     if (likes == None):
         return JsonResponse({'post_id': post_id, 'likes_count': 0, 'users': []}, status=HTTPStatus.FOUND)
     liked_users = []
     for like in list(likes):
-        user = User.objects.filter(username=like.user_id).first()
+        user = User.objects.filter(username=like.user).first()
         liked_users.append(UserSerializer(user).data)
     return JsonResponse({'post_id': post_id, 'likes_count': len(liked_users), 'users': liked_users}, status=HTTPStatus.FOUND)
 
@@ -32,7 +33,7 @@ def submit_like(request):
     user = User.objects.filter(username=username).first()
     if(user is None):
         return JsonResponse({'message': 'User not found!'}, status=HTTPStatus.BAD_REQUEST)
-    like_ = Like.objects.filter(post_id=post_id, user_id=user.id).first()
+    like_ = Like.objects.filter(post=post_id, user=user.id).first()
     if(like_ is not None):
         return JsonResponse({'message': 'Same like exists!'}, status=HTTPStatus.BAD_REQUEST)
     data = {'post_id': post_id, 'user_id': user.id}
@@ -42,3 +43,18 @@ def submit_like(request):
     else:
         return JsonResponse({'message': 'Something wrong in like data.'}, status=HTTPStatus.BAD_REQUEST)
     return JsonResponse({'message': 'Like submitted.'}, status=HTTPStatus.CREATED)
+
+@api_view(['GET'])
+def get_user_likes(request):
+    username = request.data.get('username')
+    user = User.objects.get(username=username)
+    if(user is None):
+        return JsonResponse({'message' : "User not found!"}, status=HTTPStatus.NOT_FOUND)
+    likes = Like.objects.filter(user=user.id)
+    if (likes == None):
+        return JsonResponse({'username': username, 'likes_count': 0, 'posts': []}, status=HTTPStatus.FOUND)
+    liked_posts = []
+    for like in list(likes):
+        post = Post.objects.get(id=like.post)
+        liked_posts.append(PostSerializer(post).data)
+    return JsonResponse({'username': username, 'likes_count': len(liked_posts), 'posts': liked_posts}, status=HTTPStatus.FOUND)
