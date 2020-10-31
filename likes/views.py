@@ -2,6 +2,7 @@ from django.shortcuts import render
 from rest_framework.decorators import api_view
 from .models import Like
 from authentication.models import User
+from posts.models import Post
 from authentication.serializers import UserSerializer
 from .serializers import LikeSerializer
 from django.http import JsonResponse
@@ -9,7 +10,9 @@ from http import HTTPStatus
 @api_view(['GET'])
 def get_likes(request):
     post_id = request.data.get('post_id')
-    #check if post is available! TODO
+    post = Post.objects.get(id=post_id)
+    if(post is None):
+        return JsonResponse({'message' : "Post not found!"}, status=HTTPStatus.NOT_FOUND)
     likes = Like.objects.filter(post_id=post_id)
     if (likes == None):
         return JsonResponse({'post_id': post_id, 'likes_count': 0, 'users': []}, status=HTTPStatus.FOUND)
@@ -23,7 +26,9 @@ def get_likes(request):
 def submit_like(request):
     post_id = request.data.get('post_id')
     username =  request.data.get('username')
-    #check if post is available! TODO
+    post = Post.objects.get(id=post_id)
+    if(post is None):
+        return JsonResponse({'message' : "Post not found!"}, status=HTTPStatus.NOT_FOUND)
     user = User.objects.filter(username=username).first()
     if(user is None):
         return JsonResponse({'message': 'User not found!'}, status=HTTPStatus.BAD_REQUEST)
