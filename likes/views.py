@@ -36,7 +36,7 @@ def submit_like(request):
     like_ = Like.objects.filter(post=post_id, user=user.id).first()
     if(like_ is not None):
         return JsonResponse({'message': 'Same like exists!'}, status=HTTPStatus.BAD_REQUEST)
-    data = {'post_id': post_id, 'user_id': user.id}
+    data = {'post': post_id, 'user': user.id}
     like = LikeSerializer(data=data)
     if(like.is_valid()):
         like.save()
