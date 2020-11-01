@@ -27,10 +27,10 @@ def submit_comment(request):
     return JsonResponse({'message': 'Comment submitted.'}, status=HTTPStatus.CREATED)
 
 
-@api_view(['GET'])
+@api_view(['POST'])
 def get_post_comments(request):
     post_id = request.data.get('post_id')
-    post = Post.objects.get(id=post_id)
+    post = Post.objects.filter(id=post_id).first()
     if(post is None):
         return JsonResponse({'message' : "Post not found!"}, status=HTTPStatus.NOT_FOUND)
     comments = PostComment.objects.filter(post=post_id)
@@ -44,10 +44,10 @@ def get_post_comments(request):
 
 
 
-@api_view(['GET'])
+@api_view(['POST'])
 def get_user_comments(request):
     username = request.data.get('username')
-    user = User.objects.get(username=username)
+    user = User.objects.filter(username=username).first()
     if(user is None):
         return JsonResponse({'message' : "User not found!"}, status=HTTPStatus.NOT_FOUND)
     comments = PostComment.objects.filter(author=user.id)
