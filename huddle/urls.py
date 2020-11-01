@@ -20,6 +20,7 @@ import likes.urls as likes_urls
 import user_profile.urls as profile_urls
 import posts.urls as posts_urls
 import search.urls as search_urls
+import comment.urls as commnt_urls
 from django.conf.urls import url
 from . import settings
 from django.conf.urls.static import static
@@ -27,6 +28,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     url(r'^api/auth/', include(auth_urls)),
     url(r'^api/likes/', include(likes_urls)),
+    url(r'^api/comments/', include(commnt_urls)),
     url(r'^api/profile/', include(profile_urls)),
     url(r'^api/posts/', include(posts_urls)),
     url(r'^api/search/', include(search_urls))
