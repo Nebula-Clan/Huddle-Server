@@ -21,7 +21,7 @@ import search.urls as search_urls
 from django.conf.urls import url
 urlpatterns = [
     path('admin/', admin.site.urls),
-    url(r'^api/auth/', include(auth_urls))
-    url(r'^api/search/', include(posts_urls))
-    url(r'^api/posts/', include(search_urls))
+    url(r'^api/auth/', include(auth_urls)),
+    url(r'^api/posts/', include(posts_urls)),
+    url(r'^api/search/', include(search_urls))
 ]
