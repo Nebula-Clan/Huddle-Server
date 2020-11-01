@@ -5,6 +5,7 @@ from .models import Post
 from .models import Content
 from authentication.models import User
 from authentication.serializers import UserSerializer
+from user_profile.serializer import PublicProfileSerializer
 from .serializer import *
 from http import HTTPStatus
 # Create your views here.
@@ -112,15 +113,19 @@ def update_post(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def get_user_posts(request):
-    user_id = request.data.get('user_id')
-    author = User.objects.filter(id = user_id).first()
+    username = request.data.get('username')
+    author = User.objects.filter(username = username).first()
 
-    all_posts = Post.objects.filter(author = user_id)
+    if author is None:
+        return JsonResponse({"message" : f"User with username: {username} does not exist!"})
+    
+    author_id = author.id
+    all_posts = Post.objects.filter(author = author_id)
     serialized_posts = []
     for post in all_posts:
         serialized_posts.append(PostSerializer(post).data)
 
-    serialized_author = UserSerializer(author).data
+    serialized_author = PublicProfileSerializer(author).data
     
     return JsonResponse({"author" : serialized_author, "all_user_posts" : serialized_posts})
 
@@ -133,7 +138,7 @@ def get_post(request):
         return JsonResponse({"message" : "Post not found!"}, status=HTTPStatus.NOT_FOUND)
     author = User.objects.filter(id = post.author_id).first()
     serialized_post = PostSerializer(post).data
-    serialized_author = UserSerializer(author).data
+    serialized_author = PublicProfileSerializer(author).data
 
     return JsonResponse({"author" : serialized_author, "post" : serialized_post})
 
@@ -142,6 +147,8 @@ def get_post(request):
 def get_content(request):
     content_id = request.data.get('content_id')
     content = Content.objects.filter(id = content_id).first()
+    if content is None:
+        return JsonResponse({"message" : "Content not found!"}, status = HTTPStatus.NOT_FOUND)
     serialized_content = ContentSerializer(content).data
     return JsonResponse({"content" : serialized_content})
     
