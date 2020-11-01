@@ -49,7 +49,10 @@ INSTALLED_APPS = [
     'authentication',
     'corsheaders',
     'likes',
-    'user_profile'
+    'user_profile',
+    'posts',
+    'search',
+    'comment'
 ]
 
 MIDDLEWARE = [
