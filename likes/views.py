@@ -8,7 +8,7 @@ from posts.serializer import PostSerializer
 from .serializers import LikeSerializer
 from django.http import JsonResponse
 from http import HTTPStatus
-@api_view(['GET'])
+@api_view(['POST'])
 def get_likes(request):
     post_id = request.data.get('post_id')
     post = Post.objects.get(id=post_id)
@@ -44,7 +44,7 @@ def submit_like(request):
         return JsonResponse({'message': 'Something wrong in like data.'}, status=HTTPStatus.BAD_REQUEST)
     return JsonResponse({'message': 'Like submitted.'}, status=HTTPStatus.CREATED)
 
-@api_view(['GET'])
+@api_view(['POST'])
 def get_user_likes(request):
     username = request.data.get('username')
     user = User.objects.get(username=username)
