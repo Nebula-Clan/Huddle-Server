@@ -32,7 +32,7 @@ def submit_like(request):
         return JsonResponse({'message' : "Post not found!"}, status=HTTPStatus.NOT_FOUND)
     user = User.objects.filter(username=username).first()
     if(user is None):
-        return JsonResponse({'message': 'User not found!'}, status=HTTPStatus.BAD_REQUEST)
+        return JsonResponse({'message': 'User not found!'}, status=HTTPStatus.NOT_FOUND)
     like_ = Like.objects.filter(post=post_id, user=user.id).first()
     if(like_ is not None):
         return JsonResponse({'message': 'Same like exists!'}, status=HTTPStatus.BAD_REQUEST)
