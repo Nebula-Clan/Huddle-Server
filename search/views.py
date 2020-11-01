@@ -8,7 +8,7 @@ from posts.serializer import PostSerializer
 from django.http.response import JsonResponse
 # Create your views here.
 
-@api_view(['GET'])
+@api_view(['POST'])
 def search_in_users(request):
 
     serach_key = request.data.get('search_key')
@@ -35,7 +35,7 @@ def search_in_users(request):
     
     return JsonResponse({"users_finded" : all_users_finded})
 
-@api_view(['GET'])
+@api_view(['POST'])
 def search_in_posts(request):
 
     serach_key = request.data.get('search_key')
