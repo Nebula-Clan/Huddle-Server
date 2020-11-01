@@ -10,12 +10,7 @@ from django.conf import settings
 from .validators import *
 
 # Create your views here.
-<<<<<<< HEAD
-
-@api_view(['GET'])
-=======
 @api_view(['POST'])
->>>>>>> c9efe8d6759daebcd068a3fd05df486c293b8580
 def login_view(request):
     User = get_user_model()
     username = request.POST['username']

@@ -6,6 +6,7 @@ from .models import Content
 from authentication.models import User
 from authentication.serializers import UserSerializer
 from .serializer import *
+from http import HTTPStatus
 # Create your views here.
 
 @api_view(['POST'])
@@ -56,7 +57,10 @@ def delete_post(request):
 def update_post(request):
     post_id = request.data.get('post_id')
     user = request.user
-    if not(Post.objects.filter(id = post_id).first().author_id == user.id):
+    post = Post.objects.filter(id = post_id).first()
+    if(post is None):
+        return JsonResponse({"message" : "Post not found!"}, status=HTTPStatus.NOT_FOUND)
+    if not(post.author_id == user.id):
         return JsonResponse({"message" : "This user is not allowed"})
 
     fields_to_update = request.data.get('fields_update')
@@ -125,8 +129,9 @@ def get_user_posts(request):
 def get_post(request):
     post_id = request.data.get('post_id')
     post = Post.objects.filter(id = post_id).first()
+    if(post is None):
+        return JsonResponse({"message" : "Post not found!"}, status=HTTPStatus.NOT_FOUND)
     author = User.objects.filter(id = post.author_id).first()
-
     serialized_post = PostSerializer(post).data
     serialized_author = UserSerializer(author).data
 
