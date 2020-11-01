@@ -105,7 +105,7 @@ def update_post(request):
     return JsonResponse({"message" : "All fields updated successfuly"})
 
 
-@api_view(['GET'])
+@api_view(['POST'])
 @permission_classes([AllowAny])
 def get_user_posts(request):
     user_id = request.data.get('user_id')
@@ -120,7 +120,7 @@ def get_user_posts(request):
     
     return JsonResponse({"author" : serialized_author, "all_user_posts" : serialized_posts})
 
-@api_view(['GET'])
+@api_view(['POST'])
 @permission_classes([AllowAny])
 def get_post(request):
     post_id = request.data.get('post_id')
@@ -132,7 +132,7 @@ def get_post(request):
 
     return JsonResponse({"author" : serialized_author, "post" : serialized_post})
 
-@api_view(['GET'])
+@api_view(['POST'])
 @permission_classes([AllowAny])
 def get_content(request):
     content_id = request.data.get('content_id')
