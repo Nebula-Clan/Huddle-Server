@@ -4,7 +4,7 @@ from rest_framework.decorators import api_view
 from http import HTTPStatus
 from authentication.models import User
 from .serializers import PublicProfileSerializer
-@api_view(['GET'])
+@api_view(['POST'])
 def get_public_profile(request):
     try:
         username = request.data.get('username')
