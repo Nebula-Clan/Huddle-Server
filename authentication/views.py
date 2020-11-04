@@ -2,7 +2,7 @@ from django.shortcuts import render
 from rest_framework.decorators import api_view, permission_classes
 from django.http.response import JsonResponse
 from django.contrib.auth import get_user_model
-from rest_framework import exceptions
+from rest_framework import exceptions, status
 from django.contrib.auth.hashers import check_password
 from .serializers import UserSerializer
 from .utils import *
@@ -64,10 +64,8 @@ def register_view(request):
             return JsonResponse({"user" : serialized_user, "message" : "Username already is taken"}, status = status.HTTP_400_BAD_REQUEST)
         
         else:
-            if serialized_user.is_valid():
-                to_create_user.save()
-                return JsonResponse({"user" : serialized_user, "message" : "User created successfuly"})
-            return Response(serialized_user.errors, status = status.HTTP_400_BAD_REQUEST)
+            to_create_user.save()
+            return JsonResponse({"user" : serialized_user, "message" : "User created successfuly"})
 
 
 @api_view(['GET'])
