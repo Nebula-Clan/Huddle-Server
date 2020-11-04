@@ -77,7 +77,7 @@ def user(request):
     return JsonResponse({"user" : serialized_user})
 
 
-@api_view(['GET'])
+@api_view(['POST'])
 @permission_classes([AllowAny])
 def refresh_token_view(request):
     import jwt
