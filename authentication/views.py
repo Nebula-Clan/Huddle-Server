@@ -2,7 +2,8 @@ from django.shortcuts import render
 from rest_framework.decorators import api_view, permission_classes
 from django.http.response import JsonResponse
 from django.contrib.auth import get_user_model
-from rest_framework import exceptions, status
+from rest_framework import exceptions
+from django.contrib.auth.hashers import check_password
 from .serializers import UserSerializer
 from .utils import *
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -22,7 +23,7 @@ def login_view(request):
     if user is None:
         raise exceptions.AuthenticationFailed("User not found!")
    
-    if not(user.password == password):
+    if not User.check_password(user, password):
         raise exceptions.AuthenticationFailed("Wrong password!")
     
     serialized_user = UserSerializer(user).data
@@ -44,13 +45,13 @@ def register_view(request):
 
         User = get_user_model()
 
-        if User.objects.all().count != 0:
+        if User.objects.all().count() != 0:
             last_id = User.objects.last().id
         else:
             last_id = 0
         to_create_id = last_id + 1
         to_create_user = User(id = to_create_id, first_name = first_name, last_name = last_name, username = username, email =  email)
-        to_create_user.set_password(password1)
+        to_create_user.set_password(password)
         serialized_user = UserSerializer(to_create_user).data
 
         if first_name == "" or last_name == "" or username == "" or email == "" or password == "":
