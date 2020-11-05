@@ -6,7 +6,7 @@ from authentication.models import User
 from posts.models import Post
 from .serializers import PublicProfileSerializer
 from likes.models import Like
-from comment.models import PostComment
+from comment.serializers import UserCommentSerializer
 @api_view(['POST'])
 def get_public_profile(request):
     try:
@@ -32,9 +32,9 @@ def get_public_profile(request):
         data['likes_count'] = str(len(list(likes)))
     else:
         data['likes_count'] = "0"
-    comments = PostComment.objects.filter(author=user.id)
-    if(comments is not None):
-        data['comments_count'] = str(len(list(comments)))
+    comment_serializer = UserCommentSerializer(user)
+    if(comment_serializer is not None):
+        data['comments_count'] = str(len(comment_serializer.get_post_replies(user)) + len(comment_serializer.get_comment_replies(user)))
     else:
         data['comments_count'] = "0"
     return JsonResponse(data=data, status=HTTPStatus.OK)
