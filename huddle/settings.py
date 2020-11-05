@@ -31,7 +31,7 @@ SECRET_KEY = 'wzpzt#6fe#14y10gug78a5lftfl(mmo*vfa74b5nt*ite=i3uj'
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
+# ALLOWED_HOSTS = ['huddle.pythonanywhere.com']
 CORS_ALLOWED_ORIGINS = [
      "http://localhost:3000",
 ]
@@ -110,7 +110,13 @@ DATABASES = {
     }
 
 }
-
+#Python Anywhere Dtabase
+# DATABASES = {
+# 'default': {
+#             'ENGINE': 'django.db.backends.sqlite3',
+#             'NAME': '/home/huddle/Huddle-Server/Huddle-Server.db'
+#         }
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators

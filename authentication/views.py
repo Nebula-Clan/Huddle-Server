@@ -2,7 +2,7 @@ from django.shortcuts import render
 from rest_framework.decorators import api_view, permission_classes
 from django.http.response import JsonResponse
 from django.contrib.auth import get_user_model
-from rest_framework import exceptions
+from rest_framework import exceptions, status
 from django.contrib.auth.hashers import check_password
 from .serializers import UserSerializer
 from .utils import *
@@ -54,19 +54,14 @@ def register_view(request):
         to_create_user.set_password(password)
         serialized_user = UserSerializer(to_create_user).data
 
-        ALLOW_SHORT_PASSWORD = False
-        ALLOW_SHORT_USERNAME = False
-        MPL = 8 # Minimum password length
-        MUL = 5 # Minimum username length
-
         if first_name == "" or last_name == "" or username == "" or email == "" or password == "":
-            return JsonResponse({"user" : serialized_user, "message" : "All fields are required"})
+            return JsonResponse({"user" : serialized_user, "message" : "All fields are required"}, status = status.HTTP_400_BAD_REQUEST)
 
-        elif User.objects.filter(username = username).exists():
-            return JsonResponse({"user" : serialized_user, "message" : "Username already is taken"})
-        
         elif User.objects.filter(email = email).exists():
-            return JsonResponse({"user" : serialized_user, "message" : "User with email already exists"})
+            return JsonResponse({"user" : serialized_user, "message" : "User with this email already exists"}, status = status.HTTP_400_BAD_REQUEST)
+        
+        elif User.objects.filter(username = username).exists():
+            return JsonResponse({"user" : serialized_user, "message" : "Username already is taken"}, status = status.HTTP_400_BAD_REQUEST)
         
         else:
             to_create_user.save()

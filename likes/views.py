@@ -7,6 +7,7 @@ from authentication.serializers import UserSerializer
 from posts.serializer import PostSerializer
 from .serializers import LikeSerializer
 from django.http import JsonResponse
+from user_profile.serializers import PublicProfileSerializer
 from http import HTTPStatus
 @api_view(['POST'])
 def get_likes(request):
@@ -20,7 +21,7 @@ def get_likes(request):
     liked_users = []
     for like in list(likes):
         user = User.objects.filter(username=like.user).first()
-        liked_users.append(UserSerializer(user).data)
+        liked_users.append(PublicProfileSerializer(user).data)
     return JsonResponse({'post_id': post_id, 'likes_count': len(liked_users), 'users': liked_users}, status=HTTPStatus.FOUND)
 
 @api_view(['POST'])
