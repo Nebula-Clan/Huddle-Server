@@ -4,7 +4,7 @@ from .models import Comment, PostReply, CommentReply
 from posts.models import Post
 from posts.serializer import PostSerializer
 from user_profile.serializers import PublicProfileSerializer
-from .serializers import CommentSerializer, PostCommentsSerializer, CommentReplySerializer, PostReplySerializer, DisplayCommentSerializer
+from .serializers import *
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from http import HTTPStatus
@@ -124,11 +124,11 @@ def get_user_comments(request):
     user = User.objects.filter(username=username).first()
     if(user is None):
         return JsonResponse({'message' : "User not found!"}, status=HTTPStatus.NOT_FOUND)
-    print(user.id)
-    comments = Comment.objects.filter(author=user.id)
-    if (comments == None):
-        return JsonResponse({'username': username, 'comment_count': 0, 'comments': []}, status=HTTPStatus.FOUND)
-    user_comments = []
-    for comment in list(comments):
-        user_comments.append(CommentSerializer(comment).data)
-    return JsonResponse({'user': PublicProfileSerializer(user).data, 'comment_count': len(user_comments), 'comments': user_comments}, status=HTTPStatus.FOUND)
+    # print(user.id)
+    # comments = Comment.objects.filter(author=user.id)
+    # if (comments == None):
+    #     return JsonResponse({'username': username, 'comment_count': 0, 'comments': []}, status=HTTPStatus.FOUND)
+    # user_comments = []
+    # for comment in list(comments):
+    #     user_comments.append(CommentSerializer(comment).data)
+    return JsonResponse(data=UserCommentSerializer(user).data, status=HTTPStatus.FOUND)
