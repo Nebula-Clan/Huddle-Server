@@ -7,13 +7,12 @@ from posts.models import Post
 from .serializers import PublicProfileSerializer
 from likes.models import Like
 from comment.serializers import UserCommentSerializer
-@api_view(['POST'])
+@api_view(['GET'])
 def get_public_profile(request):
-    try:
-        username = request.data.get('username')
-    except:
+    username = request.query_params.get('username', None)
+    if(username is None):
         return JsonResponse({'message': "Bad request!"}, status = HTTPStatus.BAD_REQUEST)
-    print(username)
+
     user = User.objects.filter(username=username).first()
     if(user is None):
         return JsonResponse({"message": "User not found!"}, status= HTTPStatus.NOT_FOUND)
