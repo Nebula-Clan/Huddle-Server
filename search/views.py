@@ -9,7 +9,7 @@ from django.http.response import JsonResponse
 from http import HTTPStatus
 # Create your views here.
 
-@api_view(['GET'])
+@api_view(['POST'])
 def search_in_users(request):
 
     serach_key = request.query_params.get('key', None)
@@ -37,7 +37,7 @@ def search_in_users(request):
     
     return JsonResponse({"users_finded" : all_users_finded})
 
-@api_view(['GET'])
+@api_view(['POST'])
 def search_in_posts(request):
 
     serach_key = request.query_params.get('key', None)
