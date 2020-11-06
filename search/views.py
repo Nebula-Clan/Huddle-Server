@@ -6,13 +6,15 @@ from rest_framework.decorators import api_view
 from authentication.serializers import UserSerializer
 from posts.serializer import PostSerializer
 from django.http.response import JsonResponse
+from http import HTTPStatus
 # Create your views here.
 
-@api_view(['POST'])
+@api_view(['GET'])
 def search_in_users(request):
 
-    serach_key = request.data.get('search_key')
-
+    serach_key = request.query_params.get('key', None)
+    if(serach_key is None):
+        return JsonResponse({'message': 'Bad request!'}, status=HTTPStatus.BAD_REQUEST)
     data_usernames = list(User.objects.values_list('username', flat = True))
     finded_usernames = list(set(search(serach_key, data_usernames)))
     
@@ -35,11 +37,12 @@ def search_in_users(request):
     
     return JsonResponse({"users_finded" : all_users_finded})
 
-@api_view(['POST'])
+@api_view(['GET'])
 def search_in_posts(request):
 
-    serach_key = request.data.get('search_key')
-
+    serach_key = request.query_params.get('key', None)
+    if(serach_key is None):
+        return JsonResponse({'message': 'Bad request!'}, status=HTTPStatus.BAD_REQUEST)
     data_titles = list(Post.objects.values_list('title', flat = True))
     finded_titles = list(set(search(serach_key, data_titles)))
     
