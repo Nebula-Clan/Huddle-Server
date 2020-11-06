@@ -16,7 +16,8 @@ import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
+MEDIA_URL = '/media/'
 # load env file
 load_dotenv()
 
@@ -30,7 +31,10 @@ SECRET_KEY = 'wzpzt#6fe#14y10gug78a5lftfl(mmo*vfa74b5nt*ite=i3uj'
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
+# ALLOWED_HOSTS = ['huddle.pythonanywhere.com']
+CORS_ALLOWED_ORIGINS = [
+     "http://localhost:3000",
+]
 
 # Application definition
 
@@ -43,8 +47,12 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'authentication',
+    'corsheaders',
+    'likes',
+    'user_profile',
     'posts',
     'search',
+    'comment'
 ]
 
 MIDDLEWARE = [
@@ -55,6 +63,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
 ]
 
 ROOT_URLCONF = 'huddle.urls'
@@ -100,7 +110,13 @@ DATABASES = {
     }
 
 }
-
+#Python Anywhere Dtabase
+# DATABASES = {
+# 'default': {
+#             'ENGINE': 'django.db.backends.sqlite3',
+#             'NAME': '/home/huddle/Huddle-Server/Huddle-Server.db'
+#         }
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
