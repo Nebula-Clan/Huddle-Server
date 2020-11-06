@@ -7,6 +7,7 @@ from .models import Content
 from authentication.models import User
 from authentication.serializers import UserSerializer
 from .serializer import *
+from user_profile.serializers import PublicProfileSerializer
 # Create your views here.
 
 @api_view(['POST'])
@@ -109,7 +110,9 @@ def update_post(request):
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_user_posts(request):
-    username = request.data.get('username')
+    username = request.query_params.get('username', None)
+    if(username is None):
+        return JsonResponse({"message" : f"Bad request!"}, status = status.HTTP_400_BAD_REQUEST)
     author = User.objects.filter(username = username).first()
 
     if author is None:
@@ -129,7 +132,9 @@ def get_user_posts(request):
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_post(request):
-    post_id = request.data.get('post_id')
+    post_id = request.query_params.get('id', None)
+    if(post_id is None):
+        return JsonResponse({"message" : f"Bad request!"}, status = status.HTTP_400_BAD_REQUEST)
     post = Post.objects.filter(id = post_id).first()
     if post is None:
         return JsonResponse({"message", "Post not found!"}, status = status.HTTP_404_NOT_FOUND)
@@ -143,10 +148,12 @@ def get_post(request):
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_content(request):
-    content_id = request.data.get('content_id')
+    content_id = request.query_params.get('id', None)
+    if(content_id is None):
+        return JsonResponse({"message" : f"Bad request!"}, status = status.HTTP_400_BAD_REQUEST)
     content = Content.objects.filter(id = content_id).first()
-    if post is None:
-        return JsonResponse({"message", "Content not found!"}, status = status.HTTP_404_NOT_FOUND)
+    if content is None:
+        return JsonResponse(data={"message" : "Content not found!"}, status = status.HTTP_404_NOT_FOUND)
     serialized_content = ContentSerializer(content).data
     return JsonResponse({"content" : serialized_content})
     
