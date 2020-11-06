@@ -1,12 +1,13 @@
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework import status
 from django.http.response import JsonResponse
 from .models import Post
 from .models import Content
 from authentication.models import User
 from authentication.serializers import UserSerializer
 from .serializer import *
-from http import HTTPStatus
+from user_profile.serializers import PublicProfileSerializer
 # Create your views here.
 
 @api_view(['POST'])
@@ -47,9 +48,9 @@ def delete_post(request):
             Post.objects.filter(id = post_id).first().delete()
             return JsonResponse({"message" : f"Post with ID:{post_id} deleted successfuly"})
         else:
-            return JsonResponse({"message" : f"This user with ID:{author.id} is not allowed"})
+            return JsonResponse({"message" : f"This user with ID:{author.id} is not allowed"}, status = status.HTTP_403_FORBIDDEN)
     else:
-        return JsonResponse({"message" : f"Post with ID:{post_id} does not exits"})
+        return JsonResponse({"message" : f"Post with ID:{post_id} does not exits"}, status = status.HTTP_404_NOT_FOUND)
 
 
 @api_view(['PUT'])
@@ -57,11 +58,8 @@ def delete_post(request):
 def update_post(request):
     post_id = request.data.get('post_id')
     user = request.user
-    post = Post.objects.filter(id = post_id).first()
-    if(post is None):
-        return JsonResponse({"message" : "Post not found!"}, status=HTTPStatus.NOT_FOUND)
-    if not(post.author_id == user.id):
-        return JsonResponse({"message" : "This user is not allowed"})
+    if not(Post.objects.filter(id = post_id).first().author_id == user.id):
+        return JsonResponse({"message" : "This user is not allowed"}, status = status.HTTP_403_FORBIDDEN)
 
     fields_to_update = request.data.get('fields_update')
     # 'title', 'description', 'content', 'category' are valid for field update
@@ -73,7 +71,7 @@ def update_post(request):
         try:
             new_title = request.data.get('title')
         except:
-            return JsonResponse({"message" : "No title field is sended!"})
+            return JsonResponse({"message" : "No title field is sended!"}, status = status.HTTP_400_BAD_REQUEST)
         post_finded = Post.objects.filter(id = post_id).first()
         post_finded.title = new_title
         post_finded.save(update_fields = ['title'])
@@ -82,7 +80,7 @@ def update_post(request):
         try:
             new_description = request.data.get('description')
         except:
-            return JsonResponse({"message" : "No description is sended!"})
+            return JsonResponse({"message" : "No description is sended!"}, status = status.HTTP_400_BAD_REQUEST)
         post_finded = Post.objects.filter(id = post_id).first()
         post_finded.description = new_description
         post_finded.save(update_fields = ['description'])
@@ -91,7 +89,7 @@ def update_post(request):
         try:
             new_content = request.data.get('content')
         except:
-            return JsonResponse({"message" : "No content field is sended!"})
+            return JsonResponse({"message" : "No content field is sended!"}, status = status.HTTP_400_BAD_REQUEST)
         content_id = Post.objects.filter(id = post_id).first().post_content_id
         content_finded = Content.objects.filter(id = content_id).first()
         content_finded.content_text = new_content
@@ -101,7 +99,7 @@ def update_post(request):
         try:
             new_category = request.data.get('category')
         except:
-            return JsonResponse({"message" : "No category field is sended!"})
+            return JsonResponse({"message" : "No category field is sended!"}, status = status.HTTP_400_BAD_REQUEST)
         post_finded = Post.objects.filter(id = post_id).first()
         post_finded.category = new_category
         post_finded.save(update_fields = ['category'])
@@ -109,39 +107,53 @@ def update_post(request):
     return JsonResponse({"message" : "All fields updated successfuly"})
 
 
-@api_view(['POST'])
+@api_view(['GET'])
 @permission_classes([AllowAny])
 def get_user_posts(request):
-    user_id = request.data.get('user_id')
-    author = User.objects.filter(id = user_id).first()
+    username = request.query_params.get('username', None)
+    if(username is None):
+        return JsonResponse({"message" : f"Bad request!"}, status = status.HTTP_400_BAD_REQUEST)
+    author = User.objects.filter(username = username).first()
 
-    all_posts = Post.objects.filter(author = user_id)
+    if author is None:
+        return JsonResponse({"message" : f"User with username: {username} does not exist!"}, status = status.HTTP_404_NOT_FOUND)
+    
+    author_id = author.id
+    all_posts = Post.objects.filter(author = author_id)
     serialized_posts = []
     for post in all_posts:
         serialized_posts.append(PostSerializer(post).data)
 
-    serialized_author = UserSerializer(author).data
+    serialized_author = PublicProfileSerializer(author).data
     
     return JsonResponse({"author" : serialized_author, "all_user_posts" : serialized_posts})
 
-@api_view(['POST'])
+
+@api_view(['GET'])
 @permission_classes([AllowAny])
 def get_post(request):
-    post_id = request.data.get('post_id')
+    post_id = request.query_params.get('id', None)
+    if(post_id is None):
+        return JsonResponse({"message" : f"Bad request!"}, status = status.HTTP_400_BAD_REQUEST)
     post = Post.objects.filter(id = post_id).first()
-    if(post is None):
-        return JsonResponse({"message" : "Post not found!"}, status=HTTPStatus.NOT_FOUND)
+    if post is None:
+        return JsonResponse({"message", "Post not found!"}, status = status.HTTP_404_NOT_FOUND)
     author = User.objects.filter(id = post.author_id).first()
+
     serialized_post = PostSerializer(post).data
     serialized_author = UserSerializer(author).data
 
     return JsonResponse({"author" : serialized_author, "post" : serialized_post})
 
-@api_view(['POST'])
+@api_view(['GET'])
 @permission_classes([AllowAny])
 def get_content(request):
-    content_id = request.data.get('content_id')
+    content_id = request.query_params.get('id', None)
+    if(content_id is None):
+        return JsonResponse({"message" : f"Bad request!"}, status = status.HTTP_400_BAD_REQUEST)
     content = Content.objects.filter(id = content_id).first()
+    if content is None:
+        return JsonResponse(data={"message" : "Content not found!"}, status = status.HTTP_404_NOT_FOUND)
     serialized_content = ContentSerializer(content).data
     return JsonResponse({"content" : serialized_content})
     
