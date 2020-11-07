@@ -156,7 +156,7 @@ def get_full_post(request):
 
     post = Post.objects.filter(id = post_id).first()
     if post is None:
-        return JsonResponse({"message", "Post not found!"}, status = status.HTTP_404_NOT_FOUND)
+        return JsonResponse({"message" : "Post not found!"}, status = status.HTTP_404_NOT_FOUND)
 
     author = User.objects.filter(id = post.author_id).first()
 
