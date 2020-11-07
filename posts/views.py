@@ -8,7 +8,7 @@ from authentication.models import User
 from authentication.serializers import UserSerializer
 from .serializer import *
 from user_profile.serializers import PublicProfileSerializer
-from likes.models import Like
+from likes.models import PostLike
 # Create your views here.
 
 @api_view(['POST'])
@@ -112,6 +112,7 @@ def update_post(request):
 @permission_classes([AllowAny])
 def get_user_posts(request):
     username = request.query_params.get('username', None)
+    viewer = request.query_params.get('viewer', None)
     if(username is None):
         return JsonResponse({"message" : f"Bad request!"}, status = status.HTTP_400_BAD_REQUEST)
     author = User.objects.filter(username = username).first()
@@ -123,7 +124,7 @@ def get_user_posts(request):
     all_posts = Post.objects.filter(author = author_id)
     serialized_posts = []
     for post in all_posts:
-        serialized_posts.append(PostSerializer(post).data)
+        serialized_posts.append(PostSerializer(post, context={'viewer' : viewer}).data)
 
     serialized_author = PublicProfileSerializer(author).data
     
@@ -161,7 +162,7 @@ def get_full_post(request):
 
     content = Content.objects.filter(id = post.post_content_id).first()
 
-    likes_number = Like.objects.filter(post_id = post_id).count()
+    likes_number = PostLike.objects.filter(post = post_id).count()
     
     serialized_post = PostSerializer(post).data
     serialized_author = UserSerializer(author).data
