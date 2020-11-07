@@ -2,13 +2,15 @@ from django.shortcuts import render
 from rest_framework.decorators import api_view, permission_classes
 from django.http.response import JsonResponse
 from django.contrib.auth import get_user_model
-from rest_framework import exceptions
+from rest_framework import exceptions, status
 from django.contrib.auth.hashers import check_password
 from .serializers import UserSerializer
 from .utils import *
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.conf import settings
 from .validators import *
+from errors.error_repository import *
+from errors.serializers import ErrorSerializer
 
 # Create your views here.
 @api_view(['POST'])
@@ -17,14 +19,14 @@ def login_view(request):
     username = request.POST['username']
     password = request.POST['password']
     
-    if (username is None) or (password is None):
-        raise exceptions.AuthenticationFailed("username password required!")
+    if (username == "") or (password == ""):
+        return JsonResponse({"error" : ErrorSerializer(get_error(103)).data}, status = status.HTTP_400_BAD_REQUEST)
     user = User.objects.filter(username= username).first()
     if user is None:
-        raise exceptions.AuthenticationFailed("User not found!")
-   
+        return JsonResponse({"error" : ErrorSerializer(get_error(101)).data}, status = status.HTTP_400_BAD_REQUEST)
+
     if not User.check_password(user, password):
-        raise exceptions.AuthenticationFailed("Wrong password!")
+        return JsonResponse({"error" : ErrorSerializer(get_error(101)).data}, status = status.HTTP_400_BAD_REQUEST)
     
     serialized_user = UserSerializer(user).data
     access_token = generate_access_token(user)
@@ -54,19 +56,14 @@ def register_view(request):
         to_create_user.set_password(password)
         serialized_user = UserSerializer(to_create_user).data
 
-        ALLOW_SHORT_PASSWORD = False
-        ALLOW_SHORT_USERNAME = False
-        MPL = 8 # Minimum password length
-        MUL = 5 # Minimum username length
-
         if first_name == "" or last_name == "" or username == "" or email == "" or password == "":
-            return JsonResponse({"user" : serialized_user, "message" : "All fields are required"})
+            return JsonResponse({"error" : ErrorSerializer(get_error(103)).data}, status = status.HTTP_400_BAD_REQUEST)
 
-        elif User.objects.filter(username = username).exists():
-            return JsonResponse({"user" : serialized_user, "message" : "Username already is taken"})
-        
         elif User.objects.filter(email = email).exists():
-            return JsonResponse({"user" : serialized_user, "message" : "User with email already exists"})
+            return JsonResponse({"error" : ErrorSerializer(get_error(105)).data}, status = status.HTTP_400_BAD_REQUEST)
+        
+        elif User.objects.filter(username = username).exists():
+            return JsonResponse({"error" : ErrorSerializer(get_error(104)).data}, status = status.HTTP_400_BAD_REQUEST)
         
         else:
             to_create_user.save()
@@ -81,7 +78,7 @@ def user(request):
     return JsonResponse({"user" : serialized_user})
 
 
-@api_view(['GET'])
+@api_view(['POST'])
 @permission_classes([AllowAny])
 def refresh_token_view(request):
     import jwt
