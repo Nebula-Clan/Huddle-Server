@@ -8,6 +8,7 @@ from authentication.models import User
 from authentication.serializers import UserSerializer
 from .serializer import *
 from user_profile.serializers import PublicProfileSerializer
+from likes.models import Like
 # Create your views here.
 
 @api_view(['POST'])
@@ -131,7 +132,7 @@ def get_user_posts(request):
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
-def get_post(request):
+def get_short_post(request):
     post_id = request.query_params.get('id', None)
     if(post_id is None):
         return JsonResponse({"message" : f"Bad request!"}, status = status.HTTP_400_BAD_REQUEST)
@@ -144,6 +145,32 @@ def get_post(request):
     serialized_author = UserSerializer(author).data
 
     return JsonResponse({"author" : serialized_author, "post" : serialized_post})
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_full_post(request):
+    post_id = request.query_params.get('id', None)
+    if post_id is None:
+        return JsonResponse({"message" : f"Bad request!"}, status = status.HTTP_400_BAD_REQUEST)
+
+    post = Post.objects.filter(id = post_id).first()
+    if post is None:
+        return JsonResponse({"message", "Post not found!"}, status = status.HTTP_404_NOT_FOUND)
+
+    author = User.objects.filter(id = post.author_id).first()
+
+    content = Content.objects.filter(id = post.post_content_id).first()
+
+    likes_number = Like.objects.filter(post_id = post_id).count()
+    
+    serialized_post = PostSerializer(post).data
+    serialized_author = UserSerializer(author).data
+    serialized_content = ContentSerializer(content).data
+
+    return JsonResponse({"author" : serialized_author,
+                            "post" : serialized_post, 
+                            "content" : serialized_content, 
+                            "likes_number" : likes_number})
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
