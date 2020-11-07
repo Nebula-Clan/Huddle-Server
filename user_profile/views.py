@@ -5,15 +5,14 @@ from http import HTTPStatus
 from authentication.models import User
 from posts.models import Post
 from .serializers import PublicProfileSerializer
-from likes.models import Like
+from likes.models import PostLike, CommentLike
 from comment.serializers import UserCommentSerializer
-@api_view(['POST'])
+@api_view(['GET'])
 def get_public_profile(request):
-    try:
-        username = request.data.get('username')
-    except:
+    username = request.query_params.get('username', None)
+    if(username is None):
         return JsonResponse({'message': "Bad request!"}, status = HTTPStatus.BAD_REQUEST)
-    print(username)
+
     user = User.objects.filter(username=username).first()
     if(user is None):
         return JsonResponse({"message": "User not found!"}, status= HTTPStatus.NOT_FOUND)
@@ -27,11 +26,9 @@ def get_public_profile(request):
         data['posts_count'] = str(len(list(user_posts)))
     else:
         data['posts_count'] = "0"
-    likes = Like.objects.filter(user=user.id)
-    if(likes is not None):
-        data['likes_count'] = str(len(list(likes)))
-    else:
-        data['likes_count'] = "0"
+    post_likes = list(PostLike.objects.filter(user=user.id))
+    comment_likes = list(CommentLike.objects.filter(user=user.id))
+    data['likes_count'] = len(post_likes) + len(comment_likes)
     comment_serializer = UserCommentSerializer(user)
     if(comment_serializer is not None):
         data['comments_count'] = str(len(comment_serializer.get_post_replies(user)) + len(comment_serializer.get_comment_replies(user)))

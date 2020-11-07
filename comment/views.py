@@ -14,14 +14,11 @@ from django.http.response import JsonResponse
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def submit_post_comment(request):
-    username = request.data.get('author')
+    user = request.user
     post_id = request.data.get('post')
     content = request.data.get('content')
-    if not(content and post_id and username):
+    if not(content and post_id and user):
         return JsonResponse({'message' : "Bad request!"}, status=HTTPStatus.BAD_REQUEST)
-    user = User.objects.filter(username=username).first()
-    if(user is None):
-        return JsonResponse({'message' : "User not found!"}, status=HTTPStatus.NOT_FOUND)
     post = Post.objects.filter(id=post_id).first()
     if(post is None):
         return JsonResponse({'message' : "Post not found!"}, status=HTTPStatus.NOT_FOUND)
@@ -42,14 +39,11 @@ def submit_post_comment(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def submit_reply_comment(request):
-    username = request.data.get('author')
+    user = request.user
     reply_to = request.data.get('reply_to_id')
     content = request.data.get('content')
-    if not(username and reply_to and content):
+    if not(user and reply_to and content):
         return JsonResponse({'message' : "Bad request!"}, status=HTTPStatus.BAD_REQUEST)
-    user = User.objects.filter(username=username).first()
-    if(user is None):
-        return JsonResponse({'message' : "User not found!"}, status=HTTPStatus.NOT_FOUND)
     comment = Comment.objects.filter(id=reply_to).first()
     if(comment is None):
         return JsonResponse({'message' : "Comment not found!"}, status=HTTPStatus.NOT_FOUND)
@@ -66,14 +60,14 @@ def submit_reply_comment(request):
     else :
         return JsonResponse(reply_comment.errors, status=HTTPStatus.BAD_REQUEST)
     return JsonResponse({'message': 'Comment submitted.', 'comment': new_comment.data}, status=HTTPStatus.CREATED)
-@api_view(['POST'])
+@api_view(['GET'])
 def get_post_comments(request):
-    post_id = request.data.get('post_id')
-    depth = request.data.get('depth')
-    startIdx = request.data.get('start_index')
-    length = request.data.get('max_len')
-    reply_len = request.data.get('max_reply_len')
-    print(depth)
+    post_id = request.query_params.get('post_id', None)
+    depth = request.query_params.get('depth', None)
+    startIdx = request.query_params.get('start_index', None)
+    length = request.query_params.get('max_len', None)
+    reply_len = request.query_params.get('max_reply_len', None)
+    
     if not(depth and post_id and startIdx and length):
         return JsonResponse({"message": "Bad Request!"}, status=HTTPStatus.BAD_REQUEST)
     try:
@@ -99,13 +93,13 @@ def get_post_comments(request):
         result.append(PostCommentsSerializer(comment, context={'depth' : str(depth - 1), 'max_len' : reply_len}).data)
     return JsonResponse({'post_id': post_id, 'total_comments' : total_comments, 'retrived_comments_count': len(result), 'comments': result}, status=HTTPStatus.FOUND)
 
-@api_view(['POST'])
+@api_view(['GET'])
 def get_reply_comments(request):
-    reply_to = request.data.get('reply_to')
-    depth = request.data.get('depth')
-    startIdx = request.data.get('start_index')
-    length = request.data.get('max_len')
-    reply_len = request.data.get('max_reply_len')
+    reply_to = request.query_params.get('reply_to', None)
+    depth = request.query_params.get('depth', None)
+    startIdx = request.query_params.get('start_index', None)
+    length = request.query_params.get('max_len', None)
+    reply_len = request.query_params.get('max_reply_len', None)
     if not(depth and reply_to and startIdx and length):
         return JsonResponse({"message": "Bad Request!"}, status=HTTPStatus.BAD_REQUEST)
     try:
@@ -118,9 +112,11 @@ def get_reply_comments(request):
         return JsonResponse({'message' : "Comment not found!"}, status=HTTPStatus.NOT_FOUND)
     return JsonResponse(PostCommentsSerializer(comment, context={'depth' : depth , 'max_len' : reply_len}).data, status=HTTPStatus.FOUND)
 
-@api_view(['POST'])
+@api_view(['GET'])
 def get_user_comments(request):
-    username = request.data.get('username')
+    username = request.query_params.get('username')
+    if not(username):
+        return JsonResponse({"message": "Bad Request!"}, status=HTTPStatus.BAD_REQUEST)
     user = User.objects.filter(username=username).first()
     if(user is None):
         return JsonResponse({'message' : "User not found!"}, status=HTTPStatus.NOT_FOUND)
