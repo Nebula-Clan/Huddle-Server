@@ -67,7 +67,7 @@ def get_post_comments(request):
     startIdx = request.query_params.get('start_index', None)
     length = request.query_params.get('max_len', None)
     reply_len = request.query_params.get('max_reply_len', None)
-    
+    viewer = request.query_params.get('viewer')
     if not(depth and post_id and startIdx and length):
         return JsonResponse({"message": "Bad Request!"}, status=HTTPStatus.BAD_REQUEST)
     try:
@@ -90,7 +90,7 @@ def get_post_comments(request):
         comment = comment.reply
         if(comment is None):
             continue
-        result.append(PostCommentsSerializer(comment, context={'depth' : str(depth - 1), 'max_len' : reply_len}).data)
+        result.append(PostCommentsSerializer(comment, context={'depth' : str(depth - 1), 'max_len' : reply_len, 'viewer' : viewer}).data)
     return JsonResponse({'post_id': post_id, 'total_comments' : total_comments, 'retrived_comments_count': len(result), 'comments': result}, status=HTTPStatus.FOUND)
 
 @api_view(['GET'])
@@ -100,6 +100,7 @@ def get_reply_comments(request):
     startIdx = request.query_params.get('start_index', None)
     length = request.query_params.get('max_len', None)
     reply_len = request.query_params.get('max_reply_len', None)
+    viewer = request.query_params.get('viewer')
     if not(depth and reply_to and startIdx and length):
         return JsonResponse({"message": "Bad Request!"}, status=HTTPStatus.BAD_REQUEST)
     try:
@@ -110,11 +111,12 @@ def get_reply_comments(request):
     comment = Comment.objects.filter(id=reply_to).first()
     if(comment is None):
         return JsonResponse({'message' : "Comment not found!"}, status=HTTPStatus.NOT_FOUND)
-    return JsonResponse(PostCommentsSerializer(comment, context={'depth' : depth , 'max_len' : reply_len}).data, status=HTTPStatus.FOUND)
+    return JsonResponse(PostCommentsSerializer(comment, context={'depth' : depth , 'max_len' : reply_len, 'viewer' : viewer}).data, status=HTTPStatus.FOUND)
 
 @api_view(['GET'])
 def get_user_comments(request):
     username = request.query_params.get('username')
+    viewer = request.query_params.get('viewer')
     if not(username):
         return JsonResponse({"message": "Bad Request!"}, status=HTTPStatus.BAD_REQUEST)
     user = User.objects.filter(username=username).first()
@@ -127,4 +129,4 @@ def get_user_comments(request):
     # user_comments = []
     # for comment in list(comments):
     #     user_comments.append(CommentSerializer(comment).data)
-    return JsonResponse(data=UserCommentSerializer(user).data, status=HTTPStatus.FOUND)
+    return JsonResponse(data=UserCommentSerializer(user, context = {'viewer' : viewer}).data, status=HTTPStatus.FOUND)
