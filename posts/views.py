@@ -25,7 +25,7 @@ def create_post(request):
     content_type = request.data.get('content_type') # AV: ArticleView, OI: OnlyImage, OT: OnlyText
     description = request.data.get('description')
 
-    header_image = request.FILES['header_image']
+    header_image = request.data.get('header_image')
 
     post_content = Content(content_type = content_type, content_text = content)
     post_content.save()
@@ -123,10 +123,9 @@ def get_user_posts(request):
         return JsonResponse({"error" : ErrorSerializer(get_error(100)).data}, status = status.HTTP_404_NOT_FOUND)
     
     author_id = author.id
-    all_posts = Post.objects.filter(author = author_id)
-    serialized_posts = []
-    for post in all_posts:
-        serialized_posts.append(PostSerializer(post, context={'viewer' : viewer}).data)
+    all_posts = list(Post.objects.filter(author = author_id))
+    all_posts.reverse()
+    serialized_posts = PostSerializer(all_posts, many = True, context = {"author_depth" : False}).data
 
     serialized_author = PublicProfileSerializer(author).data
     
@@ -137,17 +136,15 @@ def get_user_posts(request):
 @permission_classes([AllowAny])
 def get_short_post(request):
     post_id = request.query_params.get('id', None)
-    if(post_id is None):
+    if post_id is None:
         return JsonResponse({"error" : ErrorSerializer(get_error(103)).data}, status = status.HTTP_400_BAD_REQUEST)
     post = Post.objects.filter(id = post_id).first()
     if post is None:
         return JsonResponse({"error" : ErrorSerializer(get_error(100)).data}, status = status.HTTP_404_NOT_FOUND)
-    author = User.objects.filter(id = post.author_id).first()
+    
+    serialized_post = PostSerializer(post, context = {"content_depth" : False, "author_depth" : False}).data
 
-    serialized_post = PostSerializer(post).data
-    serialized_author = UserSerializer(author).data
-
-    return JsonResponse({"author" : serialized_author, "post" : serialized_post})
+    return JsonResponse({"post" : serialized_post})
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
@@ -159,21 +156,10 @@ def get_full_post(request):
     post = Post.objects.filter(id = post_id).first()
     if post is None:
         return JsonResponse({"error" : ErrorSerializer(get_error(100)).data}, status = status.HTTP_404_NOT_FOUND)
-
-    author = User.objects.filter(id = post.author_id).first()
-
-    content = Content.objects.filter(id = post.post_content_id).first()
-
-    likes_number = PostLike.objects.filter(post = post_id).count()
     
     serialized_post = PostSerializer(post).data
-    serialized_author = UserSerializer(author).data
-    serialized_content = ContentSerializer(content).data
 
-    return JsonResponse({"author" : serialized_author,
-                            "post" : serialized_post, 
-                            "content" : serialized_content, 
-                            "likes_number" : likes_number})
+    return JsonResponse({"post" : serialized_post})
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
