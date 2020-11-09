@@ -90,7 +90,7 @@ def get_post_comments(request):
         comment = comment.reply
         if(comment is None):
             continue
-        result.append(PostCommentsSerializer(comment, context={'depth' : str(depth - 1), 'max_len' : reply_len, 'viewer' : viewer}).data)
+        result.append(RepliedCommentSerializer(comment, context={'depth' : str(depth - 1), 'max_len' : reply_len, 'viewer' : viewer}).data)
     return JsonResponse({'post_id': post_id, 'total_comments' : total_comments, 'retrived_comments_count': len(result), 'comments': result}, status=HTTPStatus.OK)
 
 @api_view(['GET'])
@@ -111,7 +111,7 @@ def get_reply_comments(request):
     comment = Comment.objects.filter(id=reply_to).first()
     if(comment is None):
         return JsonResponse({'message' : "Comment not found!"}, status=HTTPStatus.NOT_FOUND)
-    return JsonResponse(PostCommentsSerializer(comment, context={'depth' : depth , 'max_len' : reply_len, 'viewer' : viewer}).data, status=HTTPStatus.OK)
+    return JsonResponse(RepliedCommentSerializer(comment, context={'depth' : depth, 'start_index' : startIdx , 'max_len' : reply_len, 'viewer' : viewer}).data, status=HTTPStatus.OK)
 
 @api_view(['GET'])
 def get_user_comments(request):

@@ -6,7 +6,7 @@ from authentication.models import User
 from posts.models import Post
 from authentication.serializers import UserSerializer
 from posts.serializer import PostSerializer
-from comment.serializers import PostCommentsSerializer
+from comment.serializers import RepliedCommentSerializer
 from .serializers import *
 from django.http import JsonResponse
 from user_profile.serializers import PublicProfileSerializer
@@ -20,7 +20,7 @@ def get_post_likes(request):
     post = Post.objects.filter(id=post_id).first()
     if(post is None):
         return JsonResponse({'message' : "Post not found!"}, status=HTTPStatus.NOT_FOUND)
-    return JsonResponse(ViewPostLikesSerializer(post).data, status=HTTPStatus.FOUND)
+    return JsonResponse(ViewPostLikesSerializer(post).data, status=HTTPStatus.OK)
        
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -73,4 +73,4 @@ def get_comment_likes(request):
     comment = Comment.objects.filter(id=comment_id).first()
     if(comment is None):
         return JsonResponse({'message' : "Comment not found!"}, status=HTTPStatus.NOT_FOUND)
-    return JsonResponse(ViewCommentLikesSerializer(comment).data, status=HTTPStatus.FOUND)
+    return JsonResponse(ViewCommentLikesSerializer(comment).data, status=HTTPStatus.OK)
