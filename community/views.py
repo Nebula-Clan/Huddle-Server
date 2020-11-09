@@ -84,7 +84,7 @@ def get_community_posts(request):
 def join_community(request):
     user = request.user
     cm_id = request.query_params.get('id')
-    if com_id is None:
+    if cm_id is None:
         return JsonResponse({"error" : ErrorSerializer(get_error(103)).data}, status = status.HTTP_400_BAD_REQUEST)
     community = Community.objects.filter(id = cm_id).first()
     if community is None:
@@ -97,7 +97,7 @@ def join_community(request):
 @api_view(['DELETE'])
 def leave_community(request):
     to_delete_user = request.user
-    cm_id = request.data.get('community_id')
+    cm_id = request.query_params.get('id')
     if cm_id is None:
         return JsonResponse({"error" : ErrorSerializer(get_error(103)).data}, status = status.HTTP_400_BAD_REQUEST)
     community = Community.objects.filter(id = cm_id).first()
@@ -106,4 +106,4 @@ def leave_community(request):
     if not(to_delete_user in community.users.all()):
         return JsonResponse({"error" : ErrorSerializer(get_error(100)).data}, status = status.HTTP_400_BAD_REQUEST)
     community.users.remove(to_delete_user)
-    return JsonResponse({"message" : "user removed successfuly"})
+    return JsonResponse({"message" : "user removed successfuly from community"})
