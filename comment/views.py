@@ -91,7 +91,7 @@ def get_post_comments(request):
         if(comment is None):
             continue
         result.append(PostCommentsSerializer(comment, context={'depth' : str(depth - 1), 'max_len' : reply_len, 'viewer' : viewer}).data)
-    return JsonResponse({'post_id': post_id, 'total_comments' : total_comments, 'retrived_comments_count': len(result), 'comments': result}, status=HTTPStatus.FOUND)
+    return JsonResponse({'post_id': post_id, 'total_comments' : total_comments, 'retrived_comments_count': len(result), 'comments': result}, status=HTTPStatus.OK)
 
 @api_view(['GET'])
 def get_reply_comments(request):
@@ -111,7 +111,7 @@ def get_reply_comments(request):
     comment = Comment.objects.filter(id=reply_to).first()
     if(comment is None):
         return JsonResponse({'message' : "Comment not found!"}, status=HTTPStatus.NOT_FOUND)
-    return JsonResponse(PostCommentsSerializer(comment, context={'depth' : depth , 'max_len' : reply_len, 'viewer' : viewer}).data, status=HTTPStatus.FOUND)
+    return JsonResponse(PostCommentsSerializer(comment, context={'depth' : depth , 'max_len' : reply_len, 'viewer' : viewer}).data, status=HTTPStatus.OK)
 
 @api_view(['GET'])
 def get_user_comments(request):
@@ -129,4 +129,4 @@ def get_user_comments(request):
     # user_comments = []
     # for comment in list(comments):
     #     user_comments.append(CommentSerializer(comment).data)
-    return JsonResponse(data=UserCommentSerializer(user, context = {'viewer' : viewer}).data, status=HTTPStatus.FOUND)
+    return JsonResponse(data=UserCommentSerializer(user, context = {'viewer' : viewer}).data, status=HTTPStatus.OK)
