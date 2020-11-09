@@ -2,11 +2,20 @@ from rest_framework import serializers
 from .models import *
 from user_profile.serializers import PublicProfileSerializer
 from posts.serializer import PostSerializer
-
+from likes.models import CommentLike
 class CommentSerializer(serializers.ModelSerializer):
+    liked_by_viewer = serializers.SerializerMethodField()
+    def get_liked_by_viewer(self, instance):
+        viewer = self.context.get('viewer')
+        if(not viewer):
+            return False
+        viewer_user = User.objects.filter(username=viewer).first()
+        if(not viewer_user):
+            return False
+        return CommentLike.objects.filter(user=viewer_user.id, comment=instance.id).exists()
     class Meta:
         model = Comment
-        fields = ['id', 'author', 'content']
+        fields = ['id', 'author', 'content', 'liked_by_viewer']
 
 class DisplayCommentSerializer(serializers.ModelSerializer):
     author = serializers.SerializerMethodField()
@@ -20,6 +29,15 @@ class PostCommentsSerializer(serializers.ModelSerializer):
     retrieved_replies = serializers.SerializerMethodField()
     author = serializers.SerializerMethodField()
     total_replies = serializers.SerializerMethodField()
+    liked_by_viewer = serializers.SerializerMethodField()
+    def get_liked_by_viewer(self, instance):
+        viewer = self.context.get('viewer')
+        if(not viewer):
+            return False
+        viewer_user = User.objects.filter(username=viewer).first()
+        if(not viewer_user):
+            return False
+        return CommentLike.objects.filter(user=viewer_user.id, comment=instance.id).exists()
     def get_total_replies(self, obj):
         replies = CommentReply.objects.filter(reply_to=obj.id)
         return len(list(replies))
@@ -42,7 +60,7 @@ class PostCommentsSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Comment
-        fields = ['id', 'author', 'content', 'total_replies', 'retrieved_replies']
+        fields = ['id', 'author', 'content', 'total_replies', 'liked_by_viewer', 'retrieved_replies']
         
 class PostReplySerializer(serializers.ModelSerializer):
     class Meta:
@@ -66,8 +84,8 @@ class UserCommentSerializer(serializers.ModelSerializer):
                 continue
             replied_to = replied_to.reply_to
             data = {
-                    'user_comment': CommentSerializer(comment, context={'depth' : '0', 'max_len': '0'}).data , 
-                    'parent_comment': PostCommentsSerializer(replied_to, context={'depth' : '0', 'max_len': '0'}).data
+                    'user_comment': CommentSerializer(comment, context={'depth' : '0', 'max_len': '0', 'viewer' : self.context.get('viewer')}).data , 
+                    'parent_comment': PostCommentsSerializer(replied_to, context={'depth' : '0', 'max_len': '0', 'viewer' : self.context.get('viewer')}).data
                 }
             result.append(data)
         return result
