@@ -6,7 +6,7 @@ from authentication.models import User
 from posts.models import Post
 from authentication.serializers import UserSerializer
 from posts.serializer import PostSerializer
-from comment.serializers import PostCommentsSerializer
+from comment.serializers import RepliedCommentSerializer
 from .serializers import *
 from django.http import JsonResponse
 from user_profile.serializers import PublicProfileSerializer
