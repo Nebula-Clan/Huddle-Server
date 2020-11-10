@@ -36,7 +36,7 @@ class RepliedCommentSerializer(serializers.ModelSerializer):
     comment = serializers.SerializerMethodField()
     replies = serializers.SerializerMethodField()
     def get_comment(self, instance):
-        return DisplayCommentSerializer(instance).data
+        return DisplayCommentSerializer(instance, context=self.context).data
     def get_replies(self, instance):
         depth = int(self.context.get('depth'))
         length = int(self.context.get('max_len'))
@@ -83,7 +83,7 @@ class UserCommentSerializer(serializers.ModelSerializer):
             replied_to = replied_to.reply_to
             data = {
                     'user_comment': DisplayCommentSerializer(comment, context={'depth' : '0', 'max_len': '0', 'viewer' : self.context.get('viewer')}).data , 
-                    'parent_comment': RepliedCommentSerializer(replied_to, context={'depth' : '0', 'max_len': '0', 'viewer' : self.context.get('viewer')}).data
+                    'parent_comment': RepliedCommentSerializer(replied_to, context={'depth' : '0', 'max_len': '0', 'viewer' : self.context.get('viewer'), 'start_index': 0}).data
                 }
             result.append(data)
         return result
