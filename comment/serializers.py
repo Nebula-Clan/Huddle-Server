@@ -30,7 +30,7 @@ class DisplayCommentSerializer(serializers.ModelSerializer):
         return PublicProfileSerializer(obj.author).data
     class Meta:
         model = Comment
-        fields = ['id', 'author', 'content', 'total_replies_count', 'is_liked', 'total_likes_count']
+        fields = ['id', 'author', 'create_date', 'update_date', 'content', 'total_replies_count', 'is_liked', 'total_likes_count']
 
 class RepliedCommentSerializer(serializers.ModelSerializer):
     comment = serializers.SerializerMethodField()
@@ -46,6 +46,7 @@ class RepliedCommentSerializer(serializers.ModelSerializer):
             return []
         replies = CommentReply.objects.filter(reply_to=instance.id)
         replies = [item.reply for item in list(replies)]
+        replies = sorted(replies, key=lambda x: x.create_date)
         if(startIdx is None or startIdx >= len(replies)):
             return []
         replies = replies[startIdx: startIdx + length]
@@ -76,6 +77,7 @@ class UserCommentSerializer(serializers.ModelSerializer):
         result = []
         user_comments = Comment.objects.filter(author=instance.id)
         user_comments = list(user_comments)
+        user_comments = sorted(user_comments, key=lambda x: x.create_date)
         for comment in user_comments:
             replied_to = CommentReply.objects.filter(reply=comment.id).first()
             if(replied_to is None):
@@ -93,6 +95,7 @@ class UserCommentSerializer(serializers.ModelSerializer):
         result = []
         user_comments = Comment.objects.filter(author=instance.id)
         user_comments = list(user_comments)
+        user_comments = sorted(user_comments, key=lambda x: x.create_date)
         for comment in user_comments:
             replied_to = PostReply.objects.filter(reply=comment.id).first()
             if(replied_to is None):

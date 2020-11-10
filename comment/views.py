@@ -34,7 +34,7 @@ def submit_post_comment(request):
         reply_post.save()
     else :
         return JsonResponse(reply_post.errors, status=HTTPStatus.BAD_REQUEST)
-    return JsonResponse({'message': 'Comment submitted.', 'comment' : comment.data}, status=HTTPStatus.CREATED)
+    return JsonResponse({'message': 'Comment submitted.', 'comment' : DisplayCommentSerializer(comment.instance).data}, status=HTTPStatus.CREATED)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -59,7 +59,7 @@ def submit_reply_comment(request):
         reply_comment.save()
     else :
         return JsonResponse(reply_comment.errors, status=HTTPStatus.BAD_REQUEST)
-    return JsonResponse({'message': 'Comment submitted.', 'comment': new_comment.data}, status=HTTPStatus.CREATED)
+    return JsonResponse({'message': 'Comment submitted.', 'comment': DisplayCommentSerializer(new_comment.instance).data}, status=HTTPStatus.CREATED)
 @api_view(['GET'])
 def get_post_comments(request):
     post_id = request.query_params.get('post_id', None)
