@@ -34,7 +34,7 @@ def submit_post_comment(request):
         reply_post.save()
     else :
         return JsonResponse(reply_post.errors, status=HTTPStatus.BAD_REQUEST)
-    return JsonResponse({'message': 'Comment submitted.', 'comment' : comment.data}, status=HTTPStatus.CREATED)
+    return JsonResponse({'message': 'Comment submitted.', 'comment' : DisplayCommentSerializer(comment.instance).data}, status=HTTPStatus.CREATED)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -59,11 +59,11 @@ def submit_reply_comment(request):
         reply_comment.save()
     else :
         return JsonResponse(reply_comment.errors, status=HTTPStatus.BAD_REQUEST)
-    return JsonResponse({'message': 'Comment submitted.', 'comment': new_comment.data}, status=HTTPStatus.CREATED)
+    return JsonResponse({'message': 'Comment submitted.', 'comment': DisplayCommentSerializer(new_comment.instance).data}, status=HTTPStatus.CREATED)
 @api_view(['GET'])
 def get_post_comments(request):
     post_id = request.query_params.get('post_id', None)
-    depth = request.query_params.get('depth', None)
+    depth = request.query_params.get('depth', '0')
     startIdx = request.query_params.get('start_index', None)
     length = request.query_params.get('max_len', None)
     reply_len = request.query_params.get('max_reply_len', None)
@@ -76,6 +76,8 @@ def get_post_comments(request):
         depth = int(depth)
     except:
         return JsonResponse({"message": "Inter conversion error!"}, status=HTTPStatus.BAD_REQUEST)
+    if(viewer is None and  not request.user.is_anonymous):
+        viewer = request.user.username
     post = Post.objects.filter(id=post_id).first()
     if(post is None):
         return JsonResponse({'message' : "Post not found!"}, status=HTTPStatus.NOT_FOUND)
@@ -90,7 +92,10 @@ def get_post_comments(request):
         comment = comment.reply
         if(comment is None):
             continue
-        result.append(PostCommentsSerializer(comment, context={'depth' : str(depth - 1), 'max_len' : reply_len, 'viewer' : viewer}).data)
+        result.append(RepliedCommentSerializer(comment, context={'depth' : str(depth - 1), 
+                                                                 'max_len' : reply_len, 
+                                                                 'viewer' : viewer, 
+                                                                 'start_index': startIdx}).data)
     return JsonResponse({'post_id': post_id, 'total_comments' : total_comments, 'retrived_comments_count': len(result), 'comments': result}, status=HTTPStatus.OK)
 
 @api_view(['GET'])
@@ -108,10 +113,16 @@ def get_reply_comments(request):
         length = int(length)
     except:
         return JsonResponse({"message": "Inter conversion error!"}, status=HTTPStatus.BAD_REQUEST)
+    if(viewer is None and  not request.user.is_anonymous):
+        viewer = request.user.username
     comment = Comment.objects.filter(id=reply_to).first()
     if(comment is None):
         return JsonResponse({'message' : "Comment not found!"}, status=HTTPStatus.NOT_FOUND)
-    return JsonResponse(PostCommentsSerializer(comment, context={'depth' : depth , 'max_len' : reply_len, 'viewer' : viewer}).data, status=HTTPStatus.OK)
+    return JsonResponse(RepliedCommentSerializer(comment, context={'depth' : depth, 
+                                                                    'start_index' : startIdx , 
+                                                                    'max_len' : reply_len, 
+                                                                    'viewer' : viewer,
+                                                                    'start_index': startIdx}).data, status=HTTPStatus.OK)
 
 @api_view(['GET'])
 def get_user_comments(request):
@@ -119,6 +130,8 @@ def get_user_comments(request):
     viewer = request.query_params.get('viewer')
     if not(username):
         return JsonResponse({"message": "Bad Request!"}, status=HTTPStatus.BAD_REQUEST)
+    if(viewer is None and  not request.user.is_anonymous):
+        viewer = request.user.username
     user = User.objects.filter(username=username).first()
     if(user is None):
         return JsonResponse({'message' : "User not found!"}, status=HTTPStatus.NOT_FOUND)
