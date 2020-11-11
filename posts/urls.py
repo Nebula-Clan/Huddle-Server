@@ -9,6 +9,7 @@ urlpatterns = [
     url(r'^get_short_post', views.get_short_post),
     url(r'^get_full_post', views.get_full_post),
     url(r'^get_content', views.get_content),
+    url(r'^home_posts', views.home_posts),
 ]
 # if settings.DEBUG:
 #     urlpattern += static(settings.MEDIA_URL,
