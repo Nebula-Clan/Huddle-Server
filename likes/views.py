@@ -76,6 +76,7 @@ def get_comment_likes(request):
     return JsonResponse(ViewCommentLikesSerializer(comment).data, status=HTTPStatus.OK)
 
 @api_view(['GET'])
+@permission_classes([AllowAny])
 def get_user_likes(request):
     username = request.query_params.get('username', None)
     if not(username):
@@ -88,3 +89,18 @@ def get_user_likes(request):
         viewer = request.user.username
     return JsonResponse(UserLikesSerializer(user, context={'viewer': viewer}).data, status=HTTPStatus.OK)
     
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_comment_like(request):
+    user = request.user
+    comment_id = request.data.get('id', None)
+    comment_id = request.data.get('comment_id')
+    user = request.user
+    if not(comment_id and user):
+        return JsonResponse({'message' : "Bad request!"}, status=HTTPStatus.BAD_REQUEST)
+    comment = Comment.objects.filter(id=comment_id).first()
+    if(comment is None):
+        return JsonResponse({'message' : "Comment not found!"}, status=HTTPStatus.NOT_FOUND)
+    like = CommentLike.objects.filter(user=user.id).first()
+    #TODO
+    #delete comment
