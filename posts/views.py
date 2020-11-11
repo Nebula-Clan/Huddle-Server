@@ -4,6 +4,7 @@ from rest_framework import status
 from django.http.response import JsonResponse
 from .models import Post
 from .models import Content
+from community.models import Community
 from authentication.models import User
 from authentication.serializers import UserSerializer
 from .serializer import *
@@ -11,6 +12,7 @@ from user_profile.serializers import PublicProfileSerializer
 from likes.models import PostLike
 from errors.error_repository import *
 from errors.serializers import ErrorSerializer
+from .home_post_helper import *
 # Create your views here.
 
 @api_view(['POST'])
@@ -24,13 +26,20 @@ def create_post(request):
     category = request.data.get('category')
     content_type = request.data.get('content_type') # AV: ArticleView, OI: OnlyImage, OT: OnlyText
     description = request.data.get('description')
+    community_name = request.data.get('community_name')
+
+    community = Community.objects.filter(name = community_name).first()
+    if community is None:
+        return JsonResponse({"error" : ErrorSerializer(get_error(100)).data}, status = status.HTTP_400_BAD_REQUEST)
+        
 
     header_image = request.data.get('header_image')
 
     post_content = Content(content_type = content_type, content_text = content)
     post_content.save()
 
-    to_create_post = Post(title = title, description = description, post_content = post_content, category = category, author = author)
+    to_create_post = Post(title = title, description = description, post_content = post_content,
+                            category = category, community = community, author = author)
     to_create_post.save()
 
     # adding image field after saving post in database because of image name is generated based on post_id
@@ -173,4 +182,31 @@ def get_content(request):
         return JsonResponse({"error" : ErrorSerializer(get_error(100)).data}, status = status.HTTP_404_NOT_FOUND)
     serialized_content = ContentSerializer(content).data
     return JsonResponse({"content" : serialized_content})
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def home_posts(request):
+    user = request.user
+    order_key = request.query_params.get('order_key', 'new') # hot, new, top
+    if not order_key in ['new', 'hot', 'top']:
+        return JsonResponse({"error" : ErrorSerializer(get_error(108))}, ststus = status.HTTP_400_BAD_REQUEST)
+    category_filter = request.query_params.get('category_filter', None)
     
+    communities = user.in_community.all()
+    posts = []
+    for community in communities:
+        posts_temp = Post.objects.filter(community = community.id)
+        posts.extend(posts_temp)
+    
+    if not (category_filter is None):
+        for post in posts:
+            print("1:" + post.category, post.id)
+            if post.category == category_filter:
+                print("2:" + post.category, post.id)
+                continue
+            posts.remove(post)
+            print("3:" + post.category, post.id)
+    ordered_posts = order_posts(posts, order_key)
+
+    serialized_posts = PostSerializer(ordered_posts, many = True)
+    return JsonResponse({"posts" : serialized_posts.data})
