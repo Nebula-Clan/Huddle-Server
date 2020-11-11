@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import exceptions, status
 from django.contrib.auth.hashers import check_password
 from user_profile.serializers import PublicProfileSerializer
+from .serializers import UserSerializer
 from .utils import *
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.conf import settings
