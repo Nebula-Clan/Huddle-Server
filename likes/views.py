@@ -74,3 +74,17 @@ def get_comment_likes(request):
     if(comment is None):
         return JsonResponse({'message' : "Comment not found!"}, status=HTTPStatus.NOT_FOUND)
     return JsonResponse(ViewCommentLikesSerializer(comment).data, status=HTTPStatus.OK)
+
+@api_view(['GET'])
+def get_user_likes(request):
+    username = request.query_params.get('username', None)
+    if not(username):
+        return JsonResponse({'message' : "Bad request!"}, status=HTTPStatus.BAD_REQUEST)
+    user = User.objects.filter(username=username).first()
+    if(user is None):
+        return JsonResponse({'message' : "User not found!"}, status=HTTPStatus.NOT_FOUND)
+    viewer = None
+    if not(request.user.is_anonymous):
+        viewer = request.user.username
+    return JsonResponse(UserLikesSerializer(user, context={'viewer': viewer}).data, status=HTTPStatus.OK)
+    
