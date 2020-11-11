@@ -6,5 +6,5 @@ urlpatterns = [
     url(r'^post/submit', submit_post_likes),
     url(r'^comment/get', get_comment_likes),
     url(r'^comment/submit', submit_comment_likes),
-    
+    url(r'^profile/get', get_user_likes)
 ]
