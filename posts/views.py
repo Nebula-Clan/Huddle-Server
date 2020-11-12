@@ -33,7 +33,7 @@ def create_post(request):
     
     
     community = Community.objects.filter(name = community_name).first()
-    if community is None:
+    if community is None and not (community_name is None):
         return JsonResponse({"error" : ErrorSerializer(get_error(100)).data}, status = status.HTTP_400_BAD_REQUEST)
         
 
