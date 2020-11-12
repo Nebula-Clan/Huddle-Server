@@ -4,13 +4,19 @@ from rest_framework import serializers
 from authentication.models import User
 from likes.models import PostLike
 from user_profile.serializers import PublicProfileSerializer
-
+from hashtag.models import Hashtag, PostHashtag
+from hashtag.serializers import HashtagSerializer
 class PostSerializer(serializers.ModelSerializer):
     liked_by_viewer = serializers.SerializerMethodField()
     author = serializers.SerializerMethodField()
     post_content = serializers.SerializerMethodField()
     likes_number = serializers.SerializerMethodField()
+    hashtags = serializers.SerializerMethodField()
 
+    def get_hashtags(self, instance):
+        records = PostHashtag.objects.filter(post=instance.id)
+        records = [record.hashtag for record in records]
+        return HashtagSerializer(records, many=True).data
     def get_likes_number(self, instance):
         return PostLike.objects.filter(post = instance.id).count()
     
@@ -38,7 +44,7 @@ class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = ['id', 'title', 'description', 'header_image', 'post_content',
-                    'category', 'date_created', 'author', 'liked_by_viewer', 'likes_number']
+                    'category', 'date_created', 'author', 'liked_by_viewer', 'likes_number', 'hashtags']
 
 class ContentSerializer(serializers.ModelSerializer):
     

@@ -12,6 +12,8 @@ from user_profile.serializers import PublicProfileSerializer
 from likes.models import PostLike
 from errors.error_repository import *
 from errors.serializers import ErrorSerializer
+from hashtag.serializers import HashtagListSerializer
+from hashtag.views import submit_post_hashtags
 from .home_post_helper import *
 # Create your views here.
 
@@ -27,7 +29,9 @@ def create_post(request):
     content_type = request.data.get('content_type') # AV: ArticleView, OI: OnlyImage, OT: OnlyText
     description = request.data.get('description')
     community_name = request.data.get('community_name')
-
+    hashtags = request.data.get('hashtags')
+    
+    
     community = Community.objects.filter(name = community_name).first()
     if community is None:
         return JsonResponse({"error" : ErrorSerializer(get_error(100)).data}, status = status.HTTP_400_BAD_REQUEST)
@@ -46,7 +50,11 @@ def create_post(request):
     # and post_id is declared after saving post in database
     to_create_post.header_image = header_image
     to_create_post.save(update_fields = ['header_image'])
-
+    hashtags = HashtagListSerializer(data=request.data)
+    if(hashtags.is_valid()):
+        texts = hashtags.data['hashtags']
+        value = submit_post_hashtags(to_create_post, texts)
+        print(value)
     serialized_post = PostSerializer(to_create_post).data
     return JsonResponse({"post_created" : serialized_post, "message" : f"Post created successfuly. author ID: {author_id}, post content ID: {post_content.id}"})
 
