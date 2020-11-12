@@ -53,7 +53,9 @@ INSTALLED_APPS = [
     'posts',
     'search',
     'comment',
-    'errors'
+    'errors',
+    'community',
+    'hashtag'
 ]
 
 MIDDLEWARE = [
@@ -170,3 +172,8 @@ REST_FRAMEWORK = {
         'authentication.authenticators.JWTAuthenticator',
     )
 }
+
+
+#huddle Settings
+
+HASHTAG_MAXIMUM_LENGTH = 25
