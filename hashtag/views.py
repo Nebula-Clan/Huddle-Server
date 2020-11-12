@@ -21,7 +21,7 @@ def get_hashtag_posts(request):
     
 @api_view(['GET'])
 def get_similar_to(request):
-    string = request.query_params.get('hashtag', None)
+    string = request.query_params.get('text', None)
     if(string is None):
         return JsonResponse({'message' : "Bad request!"}, status=HTTPStatus.BAD_REQUEST)
     hashtags = Hashtag.objects.all()
@@ -30,7 +30,7 @@ def get_similar_to(request):
         edit_distances[hashtag] = edit_distance(string, hashtag.text, len(string), len(hashtag.text))
     hashtags = sorted(list(hashtags), key= lambda h: edit_distances[h])
     result = [h for h in hashtags if edit_distances[h] < len(h.text)]
-    return JsonResponse(HashtagSerializer(result, many=True).data, status=HTTPStatus.OK)
+    return JsonResponse({'hashtags' : HashtagSerializer(result, many=True).data}, status=HTTPStatus.OK)
 
 
 def submit_post_hashtags(post, hashtag_list):
