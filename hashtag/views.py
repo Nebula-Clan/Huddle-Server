@@ -47,7 +47,7 @@ def submit_post_hashtags(post, hashtag_list):
         post_hashtag = PostHashtag.objects.filter(post=post.id, hashtag=hashtag.id).first()
         if(post_hashtag is not None):
             continue
-        post_hashtag = PostHashtagSerializer(data={'post': post, 'hashtag': hashtag})
+        post_hashtag = PostHashtagSerializer(data={'post': post.id, 'hashtag': hashtag.id})
         if(post_hashtag.is_valid()):
             post_hashtag.save()
         else:
