@@ -1,4 +1,5 @@
 from .models import error
+from .serializers import ErrorSerializer
 
 errors_list = [
     (100, 'Object you are looking for does not exist in database'),
@@ -11,6 +12,9 @@ errors_list = [
 
 def get_error(code):
     return error.objects.filter(code = code).first()
+
+def get_error_serialized(code, detail = ''):
+    return ErrorSerializer(get_error(code), context = {"detail" : detail})
 
 def update_error_table():
     for tp_error in errors_list:
