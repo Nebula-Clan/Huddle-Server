@@ -27,10 +27,10 @@ class UserLikesSerializer(serializers.ModelSerializer):
     def get_post_likes(self, instance):
         post_likes = PostLike.objects.filter(user=instance.id)
         posts = [like.post for like in post_likes]
-        return PostSerializer(posts, many=True).data
+        return PostSerializer(posts, context=self.context, many=True).data
     def get_comment_likes(self, instance):
         comment_likes = CommentLike.objects.filter(user=instance.id)
-        comments = [like.post for like in comment_likes]
+        comments = [like.comment for like in comment_likes]
         return DisplayCommentSerializer(comments, context=self.context, many=True).data
     class Meta:
         model = User
