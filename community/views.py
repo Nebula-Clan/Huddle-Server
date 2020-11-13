@@ -108,3 +108,13 @@ def leave_community(request):
         return JsonResponse({"error" : ErrorSerializer(get_error(100)).data}, status = status.HTTP_400_BAD_REQUEST)
     community.users.remove(to_delete_user)
     return JsonResponse({"message" : "user removed successfuly from community"})
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def user_communities(request):
+    user = request.user
+    communities = user.in_community.all()
+    communities_serialized = CommunitySmallSerializer(communities, many = True)
+
+    user_serialized = PublicProfileSerializer(user)
+    return JsonResponse({"user" : user_serialized, "communities" : communities_serialized})
