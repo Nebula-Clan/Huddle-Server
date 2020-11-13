@@ -7,7 +7,8 @@ errors_list = [
     (103, 'Required field(s) is missed'),
     (104, 'Username already is taken'),
     (105, 'User with this email already exists'),
-    (106, 'This user is not allowed for this action')
+    (106, 'This user is not allowed for this action'),
+    (107, 'User already exists in this community')
 ]
 
 def get_error(code):
