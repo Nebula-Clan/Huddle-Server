@@ -196,7 +196,7 @@ def get_content(request):
 def home_posts(request):
     user = request.user
     order_key = request.query_params.get('order_key', 'new') # hot, new, top
-    if not order_key in ['new', 'hot', 'top']:
+    if not order_key in ['hot', 'new', 'top']:
         return JsonResponse({"error" : ErrorSerializer(get_error(108))}, ststus = status.HTTP_400_BAD_REQUEST)
     category_filter = request.query_params.get('category_filter', None)
     
@@ -204,17 +204,16 @@ def home_posts(request):
     posts = []
     for community in communities:
         posts_temp = Post.objects.filter(community = community.id)
-        posts.extend(posts_temp)
+        for post in posts_temp:
+            posts.append(post)
     
     if not (category_filter is None):
         for post in posts:
-            print("1:" + post.category, post.id)
             if post.category == category_filter:
-                print("2:" + post.category, post.id)
                 continue
-            posts.remove(post)
-            print("3:" + post.category, post.id)
+            posts = list(filter(lambda post_r: post_r.id != post.id, posts))
+    
     ordered_posts = order_posts(posts, order_key)
 
-    serialized_posts = PostSerializer(ordered_posts, many = True)
+    serialized_posts = PostSerializer(ordered_posts, context = {"author_depth" : True, "content_depth" : True}, many = True)
     return JsonResponse({"posts" : serialized_posts.data})
