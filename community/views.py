@@ -117,4 +117,4 @@ def user_communities(request):
     communities_serialized = CommunitySmallSerializer(communities, many = True)
 
     user_serialized = PublicProfileSerializer(user)
-    return JsonResponse({"user" : user_serialized, "communities" : communities_serialized})
+    return JsonResponse({"user" : user_serialized.data, "communities" : communities_serialized.data})
