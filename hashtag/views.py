@@ -4,12 +4,17 @@ from rest_framework.decorators import api_view
 from django.http.response import JsonResponse
 from .serializers import *
 from posts.serializer import PostSerializer
+from likes.models import PostLike
 from .models import *
 from .edit_distance import *
 #  Create your views here.
 @api_view(['GET'])
 def get_hashtag_posts(request):
     hashtag_text = request.query_params.get('text', None)
+    sort = request.query_params.get('sort', 'latest')
+    viewer = None
+    if not(request.user.is_anonymous):
+        viewer = request.user.username
     if(hashtag_text is None):
         return JsonResponse({'message' : "Bad request!"}, status=HTTPStatus.BAD_REQUEST)
     hashtag = Hashtag.objects.filter(text=hashtag_text).first()
@@ -17,11 +22,15 @@ def get_hashtag_posts(request):
         return JsonResponse({'message' : "Hashtag not found!"}, status=HTTPStatus.NOT_FOUND)
     records = PostHashtag.objects.filter(hashtag=hashtag.id)
     posts = [record.post for record in records]
-    return JsonResponse({'hashtag' : HashtagSerializer(hashtag).data, 'posts' : PostSerializer(posts, many=True).data}, status=HTTPStatus.OK)
+    if(sort == 'latest'):
+        posts = sorted(posts, key= lambda x: x.date_created)[::-1]
+    elif(sort == 'popular'):
+        posts = sorted(posts, key= lambda x: len(PostLike.objects.filter(post=x.id)))[::-1]
+    return JsonResponse({'hashtag' : HashtagSerializer(hashtag).data, 'posts' : PostSerializer(posts, many=True, context={'viewer': viewer}).data}, status=HTTPStatus.OK)
     
 @api_view(['GET'])
 def get_similar_to(request):
-    string = request.query_params.get('hashtag', None)
+    string = request.query_params.get('text', None)
     if(string is None):
         return JsonResponse({'message' : "Bad request!"}, status=HTTPStatus.BAD_REQUEST)
     hashtags = Hashtag.objects.all()
@@ -30,7 +39,7 @@ def get_similar_to(request):
         edit_distances[hashtag] = edit_distance(string, hashtag.text, len(string), len(hashtag.text))
     hashtags = sorted(list(hashtags), key= lambda h: edit_distances[h])
     result = [h for h in hashtags if edit_distances[h] < len(h.text)]
-    return JsonResponse(HashtagSerializer(result, many=True).data, status=HTTPStatus.OK)
+    return JsonResponse({'hashtags' : HashtagSerializer(result, many=True).data}, status=HTTPStatus.OK)
 
 
 def submit_post_hashtags(post, hashtag_list):

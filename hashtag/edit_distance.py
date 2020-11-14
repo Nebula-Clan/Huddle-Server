@@ -1,6 +1,6 @@
 INSERT_COST = 1
 DELETE_COST = 2
-SUBTITUTE_COST = 1
+SUBTITUTE_COST = 3
 
 def edit_distance(str1, str2, m, n): 
     # Create a table to store results of subproblems 
