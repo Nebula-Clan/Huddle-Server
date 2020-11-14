@@ -21,6 +21,7 @@ import user_profile.urls as profile_urls
 import posts.urls as posts_urls
 import search.urls as search_urls
 import comment.urls as commnt_urls
+import community.urls as community_urls
 from django.conf.urls import url
 from . import settings
 from django.conf.urls.static import static
@@ -31,7 +32,8 @@ urlpatterns = [
     url(r'^api/comments/', include(commnt_urls)),
     url(r'^api/profile/', include(profile_urls)),
     url(r'^api/posts/', include(posts_urls)),
-    url(r'^api/search/', include(search_urls))
+    url(r'^api/search/', include(search_urls)),
+    url(r'^api/community/', include(community_urls))
 ]
 
 if(settings.DEBUG):

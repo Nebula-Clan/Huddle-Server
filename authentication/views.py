@@ -4,6 +4,7 @@ from django.http.response import JsonResponse
 from django.contrib.auth import get_user_model
 from rest_framework import exceptions, status
 from django.contrib.auth.hashers import check_password
+from user_profile.serializers import PublicProfileSerializer
 from .serializers import UserSerializer
 from .utils import *
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -74,7 +75,7 @@ def register_view(request):
 @permission_classes([IsAuthenticated])
 def user(request):
     user = request.user
-    serialized_user = UserSerializer(user).data
+    serialized_user = PublicProfileSerializer(user).data
     return JsonResponse({"user" : serialized_user})
 
 
