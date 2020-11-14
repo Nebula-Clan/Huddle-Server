@@ -59,11 +59,11 @@ def register_view(request):
         if first_name == "" or last_name == "" or username == "" or email == "" or password == "":
             return JsonResponse({"error" : ErrorSerializer(get_error(103)).data}, status = status.HTTP_400_BAD_REQUEST)
 
-        elif User.objects.filter(email = email).exists():
-            return JsonResponse({"error" : ErrorSerializer(get_error(105)).data}, status = status.HTTP_400_BAD_REQUEST)
-        
         elif User.objects.filter(username = username).exists():
             return JsonResponse({"error" : ErrorSerializer(get_error(104)).data}, status = status.HTTP_400_BAD_REQUEST)
+        
+        elif User.objects.filter(email = email).exists():
+            return JsonResponse({"error" : ErrorSerializer(get_error(105)).data}, status = status.HTTP_400_BAD_REQUEST)
         
         else:
             to_create_user.save()
