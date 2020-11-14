@@ -12,7 +12,8 @@ class CommunityCompleteSerializer(serializers.ModelSerializer):
     posts = serializers.SerializerMethodField()
 
     def get_posts(self, instance):
-        posts = Post.objects.filter(community = instance.id)
+        posts = list(Post.objects.filter(community = instance.id))
+        posts.reverse()
         return PostSerializer(posts, many = True).data
 
     def get_members(self, instance):
