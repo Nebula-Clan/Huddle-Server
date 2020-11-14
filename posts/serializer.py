@@ -7,7 +7,7 @@ from user_profile.serializers import PublicProfileSerializer
 from hashtag.models import Hashtag, PostHashtag
 from hashtag.serializers import HashtagSerializer
 class PostSerializer(serializers.ModelSerializer):
-    liked_by_viewer = serializers.SerializerMethodField()
+    is_liked = serializers.SerializerMethodField()
     author = serializers.SerializerMethodField()
     post_content = serializers.SerializerMethodField()
     likes_number = serializers.SerializerMethodField()
@@ -32,7 +32,7 @@ class PostSerializer(serializers.ModelSerializer):
             return ContentSerializer(Content.objects.filter(id = instance.post_content_id).first()).data
         return instance.post_content_id
     
-    def get_liked_by_viewer(self, instance):
+    def get_is_liked(self, instance):
         viewer = self.context.get('viewer')
         if(not viewer):
             return False
@@ -44,7 +44,7 @@ class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = ['id', 'title', 'description', 'header_image', 'post_content',
-                    'category', 'date_created', 'author', 'liked_by_viewer', 'likes_number', 'hashtags']
+                    'category', 'date_created', 'author', 'is_liked', 'likes_number', 'hashtags']
 
 class ContentSerializer(serializers.ModelSerializer):
     

@@ -1,4 +1,4 @@
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import status
 from django.http.response import JsonResponse
@@ -7,6 +7,7 @@ from .models import Content
 from community.models import Community
 from authentication.models import User
 from authentication.serializers import UserSerializer
+from authentication.authenticators import SimpleAuthenticator
 from .serializer import *
 from user_profile.serializers import PublicProfileSerializer
 from likes.models import PostLike
@@ -129,20 +130,22 @@ def update_post(request):
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
+@authentication_classes([SimpleAuthenticator])
 def get_user_posts(request):
     username = request.query_params.get('username', None)
     viewer = request.query_params.get('viewer', None)
     if(username is None):
         return JsonResponse({"error" : ErrorSerializer(get_error(103)).data}, status = status.HTTP_400_BAD_REQUEST)
     author = User.objects.filter(username = username).first()
-
+    if(viewer is None and not request.user.is_anonymous):
+        viewer = request.user.username
     if author is None:
         return JsonResponse({"error" : ErrorSerializer(get_error(100)).data}, status = status.HTTP_404_NOT_FOUND)
     
     author_id = author.id
     all_posts = list(Post.objects.filter(author = author_id))
     all_posts.reverse()
-    serialized_posts = PostSerializer(all_posts, many = True, context = {"author_depth" : False}).data
+    serialized_posts = PostSerializer(all_posts, many = True, context = {"author_depth" : False, 'viewer': viewer}).data
 
     serialized_author = PublicProfileSerializer(author).data
     
@@ -151,31 +154,38 @@ def get_user_posts(request):
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
+@authentication_classes([SimpleAuthenticator])
 def get_short_post(request):
     post_id = request.query_params.get('id', None)
-
+    viewer = request.query_params.get('viewer', None)
     if post_id is None:
         return JsonResponse({"error" : ErrorSerializer(get_error(103)).data}, status = status.HTTP_400_BAD_REQUEST)
     post = Post.objects.filter(id = post_id).first()
+    if(viewer is None and not request.user.is_anonymous):
+        viewer = request.user.username
     if post is None:
         return JsonResponse({"error" : ErrorSerializer(get_error(100)).data}, status = status.HTTP_404_NOT_FOUND)
 
-    serialized_post = PostSerializer(post, context = {"content_depth" : False, "author_depth" : True}).data
+    serialized_post = PostSerializer(post, context = {"content_depth" : False, "author_depth" : True, 'viewer': viewer}).data
 
     return JsonResponse({"post" : serialized_post})
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
+@authentication_classes([SimpleAuthenticator])
 def get_full_post(request):
     post_id = request.query_params.get('id', None)
+    viewer = request.query_params.get('viewer', None)
     if post_id is None:
         return JsonResponse({"error" : ErrorSerializer(get_error(103)).data}, status = status.HTTP_400_BAD_REQUEST)
 
     post = Post.objects.filter(id = post_id).first()
+    if(viewer is None and not request.user.is_anonymous):
+        viewer = request.user.username
     if post is None:
         return JsonResponse({"error" : ErrorSerializer(get_error(100)).data}, status = status.HTTP_404_NOT_FOUND)
     
-    serialized_post = PostSerializer(post).data
+    serialized_post = PostSerializer(post, context = {"author_depth" : False, 'viewer': viewer}).data
 
     return JsonResponse({"post" : serialized_post})
 
