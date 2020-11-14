@@ -185,7 +185,7 @@ def get_full_post(request):
     if post is None:
         return JsonResponse({"error" : ErrorSerializer(get_error(100)).data}, status = status.HTTP_404_NOT_FOUND)
     
-    serialized_post = PostSerializer(post, context = {"author_depth" : False, 'viewer': viewer}).data
+    serialized_post = PostSerializer(post, context = {'viewer': viewer}).data
 
     return JsonResponse({"post" : serialized_post})
 
