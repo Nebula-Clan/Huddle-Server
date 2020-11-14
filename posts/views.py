@@ -160,7 +160,7 @@ def get_short_post(request):
     if post is None:
         return JsonResponse({"error" : ErrorSerializer(get_error(100)).data}, status = status.HTTP_404_NOT_FOUND)
 
-    serialized_post = PostSerializer(post, context = {"content_depth" : False, "author_depth" : False}).data
+    serialized_post = PostSerializer(post, context = {"content_depth" : False, "author_depth" : True}).data
 
     return JsonResponse({"post" : serialized_post})
 
