@@ -77,7 +77,7 @@ def get_post_comments(request):
         length = int(length)
         depth = int(depth)
     except:
-        return JsonResponse({"message": "Inter conversion error!"}, status=HTTPStatus.BAD_REQUEST)
+        return JsonResponse({"message": "Integer conversion error!"}, status=HTTPStatus.BAD_REQUEST)
     if(viewer is None and  not request.user.is_anonymous):
         viewer = request.user.username
     post = Post.objects.filter(id=post_id).first()
