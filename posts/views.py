@@ -187,7 +187,7 @@ def get_full_post(request):
     if post is None:
         return JsonResponse({"error" : ErrorSerializer(get_error(100)).data}, status = status.HTTP_404_NOT_FOUND)
     
-    serialized_post = PostSerializer(post, context = {"author_depth" : False, 'viewer': viewer}).data
+    serialized_post = PostSerializer(post, context = {'viewer': viewer}).data
 
     return JsonResponse({"post" : serialized_post})
 
@@ -209,7 +209,7 @@ def home_posts(request):
     user = request.user
     order_key = request.query_params.get('order_key', 'new') # hot, new, top
     if not order_key in ['hot', 'new', 'top']:
-        return JsonResponse({"error" : ErrorSerializer(get_error(108))}, ststus = status.HTTP_400_BAD_REQUEST)
+        return JsonResponse({"error" : ErrorSerializer(get_error(108)).data}, status = status.HTTP_400_BAD_REQUEST)
     category_filter = request.query_params.get('category_filter', None)
     
     communities = user.in_community.all()
