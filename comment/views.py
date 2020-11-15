@@ -77,7 +77,7 @@ def get_post_comments(request):
         length = int(length)
         depth = int(depth)
     except:
-        return JsonResponse({"message": "Inter conversion error!"}, status=HTTPStatus.BAD_REQUEST)
+        return JsonResponse({"message": "Integer conversion error!"}, status=HTTPStatus.BAD_REQUEST)
     if(viewer is None and  not request.user.is_anonymous):
         viewer = request.user.username
     post = Post.objects.filter(id=post_id).first()
@@ -88,8 +88,9 @@ def get_post_comments(request):
     post_comments = list(post_comments)
     total_comments = len(post_comments)
     if(startIdx >= len(post_comments)):
-        return JsonResponse({"message": "Invalid start index!"}, status=HTTPStatus.BAD_REQUEST)
-    post_comments = post_comments[startIdx: startIdx + length]
+        post_comments = []
+    else:
+        post_comments = post_comments[startIdx: startIdx + length]
     for comment in list(post_comments):
         comment = comment.reply
         if(comment is None):
@@ -115,7 +116,7 @@ def get_reply_comments(request):
         startIdx = int(startIdx)
         length = int(length)
     except:
-        return JsonResponse({"message": "Inter conversion error!"}, status=HTTPStatus.BAD_REQUEST)
+        return JsonResponse({"message": "Integer conversion error!"}, status=HTTPStatus.BAD_REQUEST)
     if(viewer is None and  not request.user.is_anonymous):
         viewer = request.user.username
     comment = Comment.objects.filter(id=reply_to).first()
