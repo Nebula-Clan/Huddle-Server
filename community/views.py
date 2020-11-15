@@ -20,6 +20,10 @@ def create_community(request):
     creator = request.user
 
     name = request.data.get('name')
+
+    if Community.objects.filter(name__iexact = name.lower()).exists():
+        return JsonResponse({"error" : get_error_serialized(109)}, status = status.HTTP_406_NOT_ACCEPTABLE)
+
     about = request.data.get('about')
 
     picture = request.data.get('picture')
@@ -43,7 +47,7 @@ def get_community(request):
     summery = request.query_params.get('summery', 'f')
     if cm_name is None:
         return JsonResponse({"error" : ErrorSerializer(get_error(103)).data}, status = status.HTTP_400_BAD_REQUEST)
-    community = Community.objects.filter(name = cm_name).first()
+    community = Community.objects.filter(name__iexact = cm_name.lower()).first()
     if community is None:
         return JsonResponse({"error" : ErrorSerializer(get_error(100)).data}, status = status.HTTP_404_NOT_FOUND)
 
@@ -62,7 +66,7 @@ def get_community_members(request):
     cm_name = request.query_params.get('name', None)
     if cm_name is None:
         return JsonResponse({"error" : ErrorSerializer(get_error(103)).data}, status = status.HTTP_400_BAD_REQUEST)
-    community = Community.objects.filter(name = cm_name).first()
+    community = Community.objects.filter(name__iexact = cm_name.lower()).first()
     if community is None:
         return JsonResponse({"error" : ErrorSerializer(get_error(100)).data}, status = status.HTTP_404_NOT_FOUND)
     members = community.users.all()
@@ -73,7 +77,7 @@ def get_community_posts(request):
     cm_name = request.query_params.get('name', None)
     if cm_name is None:
         return JsonResponse({"error" : ErrorSerializer(get_error(103)).data}, status = status.HTTP_400_BAD_REQUEST)
-    community = Community.objects.filter(name = cm_name).first()
+    community = Community.objects.filter(name__iexact = cm_name.lower()).first()
     if community is None:
         return JsonResponse({"error" : ErrorSerializer(get_error(100)).data}, status = status.HTTP_404_NOT_FOUND)
     posts = list(Post.objects.filter(community = community.id))
@@ -87,7 +91,7 @@ def join_community(request):
     cm_name = request.query_params.get('name')
     if cm_name is None:
         return JsonResponse({"error" : ErrorSerializer(get_error(103)).data}, status = status.HTTP_400_BAD_REQUEST)
-    community = Community.objects.filter(name = cm_name).first()
+    community = Community.objects.filter(name__iexact = cm_name.lower()).first()
     if community is None:
         return JsonResponse({"error" : ErrorSerializer(get_error(100)).data}, status = status.HTTP_404_NOT_FOUND)
     if user in community.users.all():
@@ -101,7 +105,7 @@ def leave_community(request):
     cm_name = request.query_params.get('name', None)
     if cm_name is None:
         return JsonResponse({"error" : ErrorSerializer(get_error(103)).data}, status = status.HTTP_400_BAD_REQUEST)
-    community = Community.objects.filter(name = cm_name).first()
+    community = Community.objects.filter(name__iexact = cm_name.lower()).first()
     if community is None:
         return JsonResponse({"error" : ErrorSerializer(get_error(100)).data}, status = status.HTTP_404_NOT_FOUND)
     if not(to_delete_user in community.users.all()):
