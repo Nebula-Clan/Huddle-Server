@@ -11,7 +11,7 @@ from .serializer import CommunitySmallSerializer
 from posts.serializer import PostSerializer
 from user_profile.serializers import PublicProfileSerializer
 from errors.serializers import ErrorSerializer
-from errors.error_repository import get_error
+from errors.error_repository import *
 # Create your views here.
 
 @api_view(['POST'])
@@ -22,7 +22,7 @@ def create_community(request):
     name = request.data.get('name')
 
     if Community.objects.filter(name__iexact = name.lower()).exists():
-        return JsonResponse({"error" : get_error_serialized(109)}, status = status.HTTP_406_NOT_ACCEPTABLE)
+        return JsonResponse({"error" : get_error_serialized(109).data}, status = status.HTTP_400_BAD_REQUEST)
 
     about = request.data.get('about')
 
