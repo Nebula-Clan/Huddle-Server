@@ -8,7 +8,9 @@ errors_list = [
     (104, 'Username already is taken'),
     (105, 'User with this email already exists'),
     (106, 'This user is not allowed for this action'),
-    (107, 'User already exists in this community')
+    (107, 'User already exists in this community'),
+    (108, 'Order key parameter only can be \'top\', \'hot\', \'new\''),
+    (109, 'Community with this name already exists')
 ]
 
 def get_error(code):
