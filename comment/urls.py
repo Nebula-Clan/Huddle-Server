@@ -6,5 +6,7 @@ urlpatterns = [
     url(r'^post/submit', submit_post_comment),
     url(r'^reply/submit', submit_reply_comment),
     url(r'^reply/get', get_reply_comments),
-    url(r'^profile/get', get_user_comments)
+    url(r'^profile/get', get_user_comments),
+    url(r'^delete', delete_comment),
+
 ]
