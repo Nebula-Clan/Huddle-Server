@@ -33,9 +33,11 @@ def create_post(request):
     
     
     community = Community.objects.filter(name = community_name).first()
-    if community is None and not (community_name is None):
+    if community is None and not (community_name is None or community_name == ''):
         return JsonResponse({"error" : ErrorSerializer(get_error(100)).data}, status = status.HTTP_400_BAD_REQUEST)
-        
+    
+    if community_name == '':
+        community_name = None
 
     header_image = request.data.get('header_image')
 
@@ -215,5 +217,5 @@ def home_posts(request):
     
     ordered_posts = order_posts(posts, order_key)
 
-    serialized_posts = PostSerializer(ordered_posts, context = {"author_depth" : True, "content_depth" : True}, many = True)
+    serialized_posts = PostSerializer(ordered_posts, context = {"author_depth" : True, "content_depth" : True, "viewer" : user.username}, many = True)
     return JsonResponse({"posts" : serialized_posts.data})
