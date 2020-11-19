@@ -55,7 +55,8 @@ INSTALLED_APPS = [
     'comment',
     'errors',
     'community',
-    'hashtag'
+    'hashtag',
+    'category',
 ]
 
 MIDDLEWARE = [

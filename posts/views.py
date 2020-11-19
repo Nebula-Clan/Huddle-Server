@@ -4,6 +4,7 @@ from rest_framework import status
 from django.http.response import JsonResponse
 from .models import Post
 from .models import Content
+from category.models import Category
 from community.models import Community
 from authentication.models import User
 from authentication.serializers import UserSerializer
@@ -15,6 +16,7 @@ from errors.error_repository import *
 from errors.serializers import ErrorSerializer
 from hashtag.serializers import HashtagListSerializer
 from hashtag.views import submit_post_hashtags
+from category.models import categories as categories_list
 from .home_post_helper import *
 # Create your views here.
 
@@ -40,13 +42,20 @@ def create_post(request):
     if community_name == '':
         community_name = None
 
+    if len(category) > 2:
+        category = next((cat[0] for cat in categories_list if cat[1] == category), 'XXXX')
+    post_category = Category.objects.filter(name = category).first()
+    if post_category is None:
+        return JsonResponse({"error" : get_error_serialized(100, 'This category is not allowed').data}, status = status.HTTP_400_BAD_REQUEST)
+    
+
     header_image = request.data.get('header_image')
 
     post_content = Content(content_type = content_type, content_text = content)
     post_content.save()
 
     to_create_post = Post(title = title, description = description, post_content = post_content,
-                            category = category, community = community, author = author)
+                            category = post_category, community = community, author = author)
     to_create_post.save()
 
     # adding image field after saving post in database because of image name is generated based on post_id

@@ -6,12 +6,15 @@ from likes.models import PostLike
 from user_profile.serializers import PublicProfileSerializer
 from hashtag.models import Hashtag, PostHashtag
 from hashtag.serializers import HashtagSerializer
+from category.models import Category
+
 class PostSerializer(serializers.ModelSerializer):
     is_liked = serializers.SerializerMethodField()
     author = serializers.SerializerMethodField()
     post_content = serializers.SerializerMethodField()
     likes_number = serializers.SerializerMethodField()
     hashtags = serializers.SerializerMethodField()
+    category = serializers.SerializerMethodField()
 
     def get_hashtags(self, instance):
         records = PostHashtag.objects.filter(post=instance.id)
@@ -40,6 +43,10 @@ class PostSerializer(serializers.ModelSerializer):
         if(not viewer_user):
             return False
         return PostLike.objects.filter(user=viewer_user.id, post=instance.id).exists()
+
+    def get_category(self, instance):
+        category_id = instance.category_id
+        return Category.objects.filter(name = category_id).first().get_name_display()
 
     class Meta:
         model = Post
