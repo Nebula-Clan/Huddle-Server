@@ -23,6 +23,7 @@ import search.urls as search_urls
 import comment.urls as commnt_urls
 import community.urls as community_urls
 import hashtag.urls as hashtag_urls
+import category.urls as category_urls
 from django.conf.urls import url
 from . import settings
 from django.conf.urls.static import static
@@ -35,7 +36,8 @@ urlpatterns = [
     url(r'^api/posts/', include(posts_urls)),
     url(r'^api/search/', include(search_urls)),
     url(r'^api/community/', include(community_urls)),
-    url(r'^api/hashtag/', include(hashtag_urls))
+    url(r'^api/hashtag/', include(hashtag_urls)),
+    url(r'^api/category/', include(category_urls)),
 ]
 
 if(settings.DEBUG):
