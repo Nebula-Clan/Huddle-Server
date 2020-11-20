@@ -18,6 +18,7 @@ from hashtag.serializers import HashtagListSerializer
 from hashtag.views import submit_post_hashtags
 from category.models import categories as categories_list
 from .home_post_helper import *
+from huddle.settings import PCOUNT
 # Create your views here.
 
 @api_view(['POST'])
@@ -145,6 +146,13 @@ def update_post(request):
 def get_user_posts(request):
     username = request.query_params.get('username', None)
     viewer = request.query_params.get('viewer', None)
+
+    try:
+        offset_str = request.query_params.get('offset', None)
+        if not(offset_str is None): offset = int(offset_str)
+    except:
+        return JsonResponse({"error" : get_error_serialized(110, 'offset must be integer').data})
+    
     if(username is None):
         return JsonResponse({"error" : ErrorSerializer(get_error(103)).data}, status = status.HTTP_400_BAD_REQUEST)
     author = User.objects.filter(username = username).first()
@@ -154,9 +162,15 @@ def get_user_posts(request):
         return JsonResponse({"error" : ErrorSerializer(get_error(100)).data}, status = status.HTTP_404_NOT_FOUND)
     
     author_id = author.id
+    
     all_posts = list(Post.objects.filter(author = author_id))
-    all_posts.reverse()
-    serialized_posts = PostSerializer(all_posts, many = True, context = {"author_depth" : False, 'viewer': viewer}).data
+    all_posts.sort(key = lambda post : post.date_created, reverse = True)
+    
+    if not(offset_str is None):
+        all_posts = all_posts[PCOUNT * offset: PCOUNT * (offset + 1)]
+    
+    print(all_posts)
+    serialized_posts = PostSerializer(all_posts, many = True, context = {"author_depth" : False, 'content_depth' : False, 'viewer': viewer}).data
 
     serialized_author = PublicProfileSerializer(author).data
     
@@ -221,6 +235,12 @@ def home_posts(request):
         return JsonResponse({"error" : ErrorSerializer(get_error(108)).data}, status = status.HTTP_400_BAD_REQUEST)
     category_filter = request.query_params.get('category_filter', None)
     
+    try:
+        offset_str = request.query_params.get('offset', None)
+        if not(offset_str is None) : offset = int(offset_str)
+    except:
+        return JsonResponse({"error" : get_error_serialized(110, 'offset must be integer').data})
+    
     communities = user.in_community.all()
     posts = []
     for community in communities:
@@ -228,13 +248,17 @@ def home_posts(request):
         for post in posts_temp:
             posts.append(post)
     
+    ordered_posts = order_posts(posts, order_key)
+    
+    if not (offset_str is None):
+        ordered_posts = ordered_posts[PCOUNT * offset:PCOUNT * (offset + 1)]
+
     if not (category_filter is None):
         for post in posts:
             if post.category == category_filter:
                 continue
             posts = list(filter(lambda post_r: post_r.id != post.id, posts))
     
-    ordered_posts = order_posts(posts, order_key)
 
-    serialized_posts = PostSerializer(ordered_posts, context = {"author_depth" : True, "content_depth" : True, "viewer" : user.username}, many = True)
+    serialized_posts = PostSerializer(ordered_posts, context = {"author_depth" : True, "content_depth" : False, "viewer" : user.username}, many = True)
     return JsonResponse({"posts" : serialized_posts.data})
