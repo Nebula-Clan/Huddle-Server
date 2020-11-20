@@ -12,6 +12,7 @@ from posts.serializer import PostSerializer
 from user_profile.serializers import PublicProfileSerializer
 from errors.serializers import ErrorSerializer
 from errors.error_repository import *
+from huddle.settings import PCOUNT
 # Create your views here.
 
 @api_view(['POST'])
@@ -80,8 +81,18 @@ def get_community_posts(request):
     community = Community.objects.filter(name__iexact = cm_name.lower()).first()
     if community is None:
         return JsonResponse({"error" : ErrorSerializer(get_error(100)).data}, status = status.HTTP_404_NOT_FOUND)
+        
+    try:
+        offset_str = request.query_params.get('offset', None)
+        if not(offset_str is None): offset = int(offset_str)
+    except:
+        return JsonResponse({"error" : get_error_serialized(110, 'offset must be integer').data})
+    
     posts = list(Post.objects.filter(community = community.id))
-    posts.reverse()
+    posts.sort(key = lambda post : post.date_created, reverse = True)
+
+    if not(offset_str is None):
+        posts = posts[PCOUNT * offset: PCOUNT * (offset + 1)]
     return JsonResponse({"posts" : PostSerializer(posts, many = True).data})
 
 @api_view(['POST'])
