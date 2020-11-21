@@ -29,7 +29,7 @@ def create_post(request):
 
     title = request.data.get('title')
     content = request.data.get('content') # A base64 string for psot content
-    category = request.data.get('category')
+    category = request.data.get('category', None)
     content_type = request.data.get('content_type') # AV: ArticleView, OI: OnlyImage, OT: OnlyText
     description = request.data.get('description')
     community_name = request.data.get('community_name')
@@ -43,11 +43,14 @@ def create_post(request):
     if community_name == '':
         community_name = None
 
-    if len(category) > 2:
-        category = next((cat[0] for cat in categories_list if cat[1] == category), 'XXXX')
-    post_category = Category.objects.filter(name = category).first()
-    if post_category is None:
-        return JsonResponse({"error" : get_error_serialized(100, 'This category is not allowed').data}, status = status.HTTP_400_BAD_REQUEST)
+    if category is None or category is "":
+        post_category = None
+    else:
+        if len(category) > 2:
+            category = next((cat[0] for cat in categories_list if cat[1] == category), 'XXXX')
+        post_category = Category.objects.filter(name = category).first()
+        if post_category is None:
+            return JsonResponse({"error" : get_error_serialized(100, 'This category is not allowed').data}, status = status.HTTP_400_BAD_REQUEST)
     
 
     header_image = request.data.get('header_image')

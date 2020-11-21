@@ -43,6 +43,7 @@ icons = [
 ]
 
 def update_category_table():
+
     for counter in range(len(categories)):
         cat = categories[counter]
         icon = icons[counter]
@@ -51,6 +52,12 @@ def update_category_table():
             if finded_category.icon == icon: continue
         category = Category(name = cat[0], icon = icon)
         category.save()
+
+    all_categories = Category.objects.all()
+    categories_id = [cat[0] for cat in categories]
+    for category in all_categories:
+        if not(category.name in categories_id):
+            Category.objects.get(name = category.name).delete()
 
 class Category(models.Model):
 

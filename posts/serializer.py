@@ -45,6 +45,8 @@ class PostSerializer(serializers.ModelSerializer):
         return PostLike.objects.filter(user=viewer_user.id, post=instance.id).exists()
 
     def get_category(self, instance):
+        if instance.category is None:
+            return None
         category_id = instance.category_id
         return Category.objects.filter(name = category_id).first().get_name_display()
 
