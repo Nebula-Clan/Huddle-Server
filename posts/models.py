@@ -7,40 +7,23 @@ def get_image_directory(instance, filename):
     return f'uploads/header_images/{instance.id}.{ext}'
 
 class Post(models.Model):
-    CategoryChoices = [
-        ('SPORT', 'Sport'),
-        ('SOCIAL', 'Social'),
-        ('PROGRAMMING', 'Programming'),
-        ('PLITICAL', 'Political'),
-        ('CINEMA', 'Movie And Cinema'),
-        ('HEALTH', 'Health'),
-        ('MUSIC', 'Music'),
-        ('GAMING', 'Gaming'),
-        ('FUN', 'Fun'),
-        ('NEWS', 'News'),
-        ('MEME', 'Memes'),
-        ('TECH', 'Technology'),
-        ('AD', 'Art And Design'),
-        ('FOOD', 'Food'),
-        ('EDU', 'Education'),
-        ('SCIENCE', 'Science'),
-        ('BOOK', 'Book And Wrting'),
-        ('BEUTY', 'Beuty'),
-        ('DISCUSSION', 'Discussion'),
-        ('QA', 'Q & A'),
-        ('MEDICIAN', 'Medician'),
-        ('OTHER', 'Other'),
-    ]
 
     title = models.CharField(max_length = 50)
     header_image = models.ImageField(upload_to = get_image_directory, null = True)
     description = models.CharField(max_length = 200, default = "")
     post_content = models.OneToOneField('posts.Content', on_delete = models.CASCADE)
-    category = models.CharField(choices = CategoryChoices, max_length = 20, default = 'OTHER')
+    category = models.ForeignKey('category.Category', on_delete = models.CASCADE, null = True)
     community = models.ForeignKey('community.Community', on_delete = models.CASCADE, null = True)
     date_created = models.DateTimeField(auto_now = True)
     author = models.ForeignKey('authentication.User', on_delete = models.CASCADE)
 
+    def likes_number(self):
+        from likes.models import PostLike
+        return PostLike.objects.filter(post = self.id).count()
+
+    def comments_number(self):
+        from comment.models import PostReply
+        return PostReply.objects.filter(post = self.id).count()
 
 class Content(models.Model):
     TypeContentChioces = [('AV', 'Article View'), ('OT', 'Only Text'), ('OI', 'Only Image')]

@@ -4,6 +4,7 @@ from django.http.response import JsonResponse
 from django.contrib.auth import get_user_model
 from rest_framework import exceptions, status
 from django.contrib.auth.hashers import check_password
+from user_profile.serializers import PublicProfileSerializer
 from .serializers import UserSerializer
 from .utils import *
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -59,11 +60,11 @@ def register_view(request):
         if first_name == "" or last_name == "" or username == "" or email == "" or password == "":
             return JsonResponse({"error" : ErrorSerializer(get_error(103)).data}, status = status.HTTP_400_BAD_REQUEST)
 
-        elif User.objects.filter(email = email).exists():
-            return JsonResponse({"error" : ErrorSerializer(get_error(105)).data}, status = status.HTTP_400_BAD_REQUEST)
-        
         elif User.objects.filter(username = username).exists():
             return JsonResponse({"error" : ErrorSerializer(get_error(104)).data}, status = status.HTTP_400_BAD_REQUEST)
+        
+        elif User.objects.filter(email = email).exists():
+            return JsonResponse({"error" : ErrorSerializer(get_error(105)).data}, status = status.HTTP_400_BAD_REQUEST)
         
         else:
             to_create_user.save()
@@ -74,7 +75,7 @@ def register_view(request):
 @permission_classes([IsAuthenticated])
 def user(request):
     user = request.user
-    serialized_user = UserSerializer(user).data
+    serialized_user = PublicProfileSerializer(user).data
     return JsonResponse({"user" : serialized_user})
 
 

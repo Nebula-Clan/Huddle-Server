@@ -11,7 +11,8 @@ from .serializer import CommunitySmallSerializer
 from posts.serializer import PostSerializer
 from user_profile.serializers import PublicProfileSerializer
 from errors.serializers import ErrorSerializer
-from errors.error_repository import get_error
+from errors.error_repository import *
+from huddle.settings import PCOUNT
 # Create your views here.
 
 @api_view(['POST'])
@@ -20,6 +21,10 @@ def create_community(request):
     creator = request.user
 
     name = request.data.get('name')
+
+    if Community.objects.filter(name__iexact = name.lower()).exists():
+        return JsonResponse({"error" : get_error_serialized(109).data}, status = status.HTTP_400_BAD_REQUEST)
+
     about = request.data.get('about')
 
     picture = request.data.get('picture')
@@ -39,11 +44,11 @@ def create_community(request):
 
 @api_view(['GET'])
 def get_community(request):
-    cm_id = request.query_params.get('id', None)
+    cm_name = request.query_params.get('name', None)
     summery = request.query_params.get('summery', 'f')
-    if cm_id is None:
+    if cm_name is None:
         return JsonResponse({"error" : ErrorSerializer(get_error(103)).data}, status = status.HTTP_400_BAD_REQUEST)
-    community = Community.objects.filter(id = cm_id).first()
+    community = Community.objects.filter(name__iexact = cm_name.lower()).first()
     if community is None:
         return JsonResponse({"error" : ErrorSerializer(get_error(100)).data}, status = status.HTTP_404_NOT_FOUND)
 
@@ -59,36 +64,47 @@ def get_community(request):
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_community_members(request):
-    cm_id = request.query_params.get('id', None)
-    if cm_id is None:
+    cm_name = request.query_params.get('name', None)
+    if cm_name is None:
         return JsonResponse({"error" : ErrorSerializer(get_error(103)).data}, status = status.HTTP_400_BAD_REQUEST)
-    community = Community.objects.filter(id = cm_id).first()
+    community = Community.objects.filter(name__iexact = cm_name.lower()).first()
     if community is None:
-        return JsonResponse({"error" : ErrorSerializer(get_error(100)).data}, status = status.HTTP_400_BAD_REQUEST)
+        return JsonResponse({"error" : ErrorSerializer(get_error(100)).data}, status = status.HTTP_404_NOT_FOUND)
     members = community.users.all()
     return JsonResponse({"members" : PublicProfileSerializer(members, many = True).data})
 
 @api_view(['GET'])
 def get_community_posts(request):
-    cm_id = request.query_params.get('id', None)
-    if cm_id is None:
+    cm_name = request.query_params.get('name', None)
+    if cm_name is None:
         return JsonResponse({"error" : ErrorSerializer(get_error(103)).data}, status = status.HTTP_400_BAD_REQUEST)
-    if not Community.objects.filter(id = cm_id).exists():
-        return JsonResponse({"error" : ErrorSerializer(get_error(100)).data}, status = status.HTTP_400_BAD_REQUEST)
-    posts = list(Post.objects.filter(community = cm_id))
-    # posts.reverse()
-    return JsonResponse({"posts" : PostSerializer(posts, many = True).data})
+    community = Community.objects.filter(name__iexact = cm_name.lower()).first()
+    if community is None:
+        return JsonResponse({"error" : ErrorSerializer(get_error(100)).data}, status = status.HTTP_404_NOT_FOUND)
+        
+    try:
+        offset_str = request.query_params.get('offset', None)
+        if not(offset_str is None): offset = int(offset_str)
+    except:
+        return JsonResponse({"error" : get_error_serialized(110, 'offset must be integer').data})
+    
+    posts = list(Post.objects.filter(community = community.id))
+    posts.sort(key = lambda post : post.date_created, reverse = True)
+
+    if not(offset_str is None):
+        posts = posts[PCOUNT * offset: PCOUNT * (offset + 1)]
+    return JsonResponse({"posts" : PostSerializer(posts, context = {"content_depth" : False}, many = True).data})
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def join_community(request):
     user = request.user
-    cm_id = request.query_params.get('id')
-    if com_id is None:
+    cm_name = request.query_params.get('name')
+    if cm_name is None:
         return JsonResponse({"error" : ErrorSerializer(get_error(103)).data}, status = status.HTTP_400_BAD_REQUEST)
-    community = Community.objects.filter(id = cm_id).first()
+    community = Community.objects.filter(name__iexact = cm_name.lower()).first()
     if community is None:
-        return JsonResponse({"error" : ErrorSerializer(get_error(100)).data}, status = status.HTTP_400_BAD_REQUEST)
+        return JsonResponse({"error" : ErrorSerializer(get_error(100)).data}, status = status.HTTP_404_NOT_FOUND)
     if user in community.users.all():
         return JsonResponse({"error" : ErrorSerializer(get_error(107)).data}, status = status.HTTP_400_BAD_REQUEST)
     community.users.add(user)
@@ -97,13 +113,23 @@ def join_community(request):
 @api_view(['DELETE'])
 def leave_community(request):
     to_delete_user = request.user
-    cm_id = request.data.get('community_id')
-    if cm_id is None:
+    cm_name = request.query_params.get('name', None)
+    if cm_name is None:
         return JsonResponse({"error" : ErrorSerializer(get_error(103)).data}, status = status.HTTP_400_BAD_REQUEST)
-    community = Community.objects.filter(id = cm_id).first()
+    community = Community.objects.filter(name__iexact = cm_name.lower()).first()
     if community is None:
-        return JsonResponse({"error" : ErrorSerializer(get_error(100)).data}, status = status.HTTP_400_BAD_REQUEST)
+        return JsonResponse({"error" : ErrorSerializer(get_error(100)).data}, status = status.HTTP_404_NOT_FOUND)
     if not(to_delete_user in community.users.all()):
         return JsonResponse({"error" : ErrorSerializer(get_error(100)).data}, status = status.HTTP_400_BAD_REQUEST)
     community.users.remove(to_delete_user)
-    return JsonResponse({"message" : "user removed successfuly"})
+    return JsonResponse({"message" : "user removed successfuly from community"})
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def user_communities(request):
+    user = request.user
+    communities = user.in_community.all()
+    communities_serialized = CommunitySmallSerializer(communities, many = True)
+
+    user_serialized = PublicProfileSerializer(user)
+    return JsonResponse({"user" : user_serialized.data, "communities" : communities_serialized.data})

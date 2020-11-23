@@ -7,7 +7,6 @@ urlpatterns = [
     url(r'^join_community', views.join_community),
     url(r'^leave_community', views.leave_community),
     url(r'^community_members', views.get_community_members),
-    url(r'^community_posts', views.get_community_posts)
-
-    # url(r'^blah', views.blah)
+    url(r'^community_posts', views.get_community_posts),
+    url(r'^user_communities', views.user_communities),
 ]
