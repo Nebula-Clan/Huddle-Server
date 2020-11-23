@@ -152,5 +152,12 @@ def delete_comment(request):
     comment = Comment.objects.filter(id=comment_id, author=user.id).first()
     if(comment is None):
         return JsonResponse({"message": "Comment not found!"}, status=HTTPStatus.NOT_FOUND)
-    comment.delete()
+    recursively_delete_comment(comment)
     return JsonResponse({'message': "Comment deleted successfully."}, status=HTTPStatus.OK)
+
+def recursively_delete_comment(comment: Comment):
+    replies = CommentReply.objects.filter(reply_to=comment.id)
+    replies = [record.reply for record in replies]
+    comment.delete()
+    for reply in replies:
+        recursively_delete_comment(reply)
