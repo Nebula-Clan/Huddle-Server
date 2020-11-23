@@ -52,7 +52,11 @@ INSTALLED_APPS = [
     'user_profile',
     'posts',
     'search',
-    'comment'
+    'comment',
+    'errors',
+    'community',
+    'hashtag',
+    'category',
 ]
 
 MIDDLEWARE = [
@@ -169,3 +173,9 @@ REST_FRAMEWORK = {
         'authentication.authenticators.JWTAuthenticator',
     )
 }
+
+
+#huddle Settings
+
+HASHTAG_MAXIMUM_LENGTH = 25
+PCOUNT = 10 # How many posts return for a page of posts
