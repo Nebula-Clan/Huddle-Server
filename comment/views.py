@@ -10,6 +10,8 @@ from rest_framework.permissions import IsAuthenticated
 from http import HTTPStatus
 from django.http.response import JsonResponse
 from authentication.authenticators import SimpleAuthenticator
+from errors.error_repository import get_error_serialized, get_error
+from errors.serializers import ErrorSerializer
 # Create your views here.
 
 @api_view(['POST'])
@@ -19,10 +21,10 @@ def submit_post_comment(request):
     post_id = request.data.get('post')
     content = request.data.get('content')
     if not(content and post_id and user):
-        return JsonResponse({'message' : "Bad request!"}, status=HTTPStatus.BAD_REQUEST)
+        return JsonResponse(ErrorSerializer(get_error(103)).data, status=HTTPStatus.BAD_REQUEST)
     post = Post.objects.filter(id=post_id).first()
     if(post is None):
-        return JsonResponse({'message' : "Post not found!"}, status=HTTPStatus.NOT_FOUND)
+        return JsonResponse(get_error_serialized(100, "Post not found!").data, status=HTTPStatus.NOT_FOUND)
     data = {'author' : user.id, 'content' : content}
     comment = CommentSerializer(data=data)
     if(comment.is_valid()):
@@ -44,10 +46,10 @@ def submit_reply_comment(request):
     reply_to = request.data.get('reply_to_id')
     content = request.data.get('content')
     if not(user and reply_to and content):
-        return JsonResponse({'message' : "Bad request!"}, status=HTTPStatus.BAD_REQUEST)
+        return JsonResponse(ErrorSerializer(get_error(103)).data, status=HTTPStatus.BAD_REQUEST)
     comment = Comment.objects.filter(id=reply_to).first()
     if(comment is None):
-        return JsonResponse({'message' : "Comment not found!"}, status=HTTPStatus.NOT_FOUND)
+        return JsonResponse(get_error_serialized(100, "Comment not found!").data, status=HTTPStatus.NOT_FOUND)
     data = {'author' : user.id, 'content' : content}
     new_comment = CommentSerializer(data=data)
     if(new_comment.is_valid()):
@@ -71,18 +73,18 @@ def get_post_comments(request):
     reply_len = request.query_params.get('max_reply_len', None)
     viewer = request.query_params.get('viewer')
     if not(depth and post_id and startIdx and length):
-        return JsonResponse({"message": "Bad Request!"}, status=HTTPStatus.BAD_REQUEST)
+        return JsonResponse(ErrorSerializer(get_error(103)).data, status=HTTPStatus.BAD_REQUEST)
     try:
         startIdx = int(startIdx)
         length = int(length)
         depth = int(depth)
     except:
-        return JsonResponse({"message": "Integer conversion error!"}, status=HTTPStatus.BAD_REQUEST)
+        return JsonResponse(get_error_serialized(103, "Integer conversion error!").data, status=HTTPStatus.BAD_REQUEST)
     if(viewer is None and  not request.user.is_anonymous):
         viewer = request.user.username
     post = Post.objects.filter(id=post_id).first()
     if(post is None):
-        return JsonResponse({'message' : "Post not found!"}, status=HTTPStatus.NOT_FOUND)
+        return JsonResponse(get_error_serialized(100, "Post not found!").data, status=HTTPStatus.NOT_FOUND)
     post_comments = PostReply.objects.filter(post=post_id)
     result = []
     post_comments = list(post_comments)
@@ -111,17 +113,17 @@ def get_reply_comments(request):
     reply_len = request.query_params.get('max_reply_len', None)
     viewer = request.query_params.get('viewer')
     if not(depth and reply_to and startIdx and length):
-        return JsonResponse({"message": "Bad Request!"}, status=HTTPStatus.BAD_REQUEST)
+        return JsonResponse(ErrorSerializer(get_error(103)).data, status=HTTPStatus.BAD_REQUEST)
     try:
         startIdx = int(startIdx)
         length = int(length)
     except:
-        return JsonResponse({"message": "Integer conversion error!"}, status=HTTPStatus.BAD_REQUEST)
+        return JsonResponse(get_error_serialized(103, "Integer conversion error!").data, status=HTTPStatus.BAD_REQUEST)
     if(viewer is None and  not request.user.is_anonymous):
         viewer = request.user.username
     comment = Comment.objects.filter(id=reply_to).first()
     if(comment is None):
-        return JsonResponse({'message' : "Comment not found!"}, status=HTTPStatus.NOT_FOUND)
+        return JsonResponse(get_error_serialized(100, "Comment not found!").data, status=HTTPStatus.NOT_FOUND)
     return JsonResponse(RepliedCommentSerializer(comment, context={'depth' : depth, 
                                                                     'start_index' : startIdx , 
                                                                     'max_len' : reply_len, 
@@ -134,12 +136,12 @@ def get_user_comments(request):
     username = request.query_params.get('username')
     viewer = request.query_params.get('viewer')
     if not(username):
-        return JsonResponse({"message": "Bad Request!"}, status=HTTPStatus.BAD_REQUEST)
+        return JsonResponse(ErrorSerializer(get_error(103)).data, status=HTTPStatus.BAD_REQUEST)
     if(viewer is None and  not request.user.is_anonymous):
         viewer = request.user.username
     user = User.objects.filter(username=username).first()
     if(user is None):
-        return JsonResponse({'message' : "User not found!"}, status=HTTPStatus.NOT_FOUND)
+        return JsonResponse(get_error_serialized(100, "User not found!").data, status=HTTPStatus.NOT_FOUND)
     return JsonResponse(data=UserCommentSerializer(user, context = {'viewer' : viewer}).data, status=HTTPStatus.OK)
 
 @api_view(['DELETE'])
@@ -148,10 +150,10 @@ def delete_comment(request):
     user = request.user
     comment_id = request.data.get('id', None)
     if comment_id is None:
-        return JsonResponse({"message": "Bad Request!"}, status=HTTPStatus.BAD_REQUEST)
+        return JsonResponse(ErrorSerializer(get_error(103)).data, status=HTTPStatus.BAD_REQUEST)
     comment = Comment.objects.filter(id=comment_id, author=user.id).first()
     if(comment is None):
-        return JsonResponse({"message": "Comment not found!"}, status=HTTPStatus.NOT_FOUND)
+        return JsonResponse(get_error_serialized(100, "Comment not found!").data, status=HTTPStatus.NOT_FOUND)
     recursively_delete_comment(comment)
     return JsonResponse({'message': "Comment deleted successfully."}, status=HTTPStatus.OK)
 
