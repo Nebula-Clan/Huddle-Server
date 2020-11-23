@@ -240,7 +240,8 @@ def home_posts(request):
     
     category_filter = request.query_params.get('category_filter', None)
     if (category_filter is not None) and (len(category_filter) > 2):
-        category_filter = categoryname_mapper(category_filter) 
+        cf_mapped = categoryname_mapper(category_filter)
+        if cf_mapped is not None: category_filter = cf_mapped 
     
     try:
         offset_str = request.query_params.get('offset', None)
