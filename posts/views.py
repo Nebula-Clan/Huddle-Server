@@ -19,6 +19,7 @@ from hashtag.views import submit_post_hashtags
 from category.models import categories as categories_list
 from .home_post_helper import *
 from huddle.settings import PCOUNT
+from category.methods import *
 # Create your views here.
 
 @api_view(['POST'])
@@ -236,7 +237,10 @@ def home_posts(request):
     order_key = request.query_params.get('order_key', 'new') # hot, new, top
     if not order_key in ['hot', 'new', 'top']:
         return JsonResponse({"error" : ErrorSerializer(get_error(108)).data}, status = status.HTTP_400_BAD_REQUEST)
+    
     category_filter = request.query_params.get('category_filter', None)
+    if (category_filter is not None) and (len(category_filter) > 2):
+        category_filter = categoryname_mapper(category_filter) 
     
     try:
         offset_str = request.query_params.get('offset', None)
@@ -244,10 +248,13 @@ def home_posts(request):
     except:
         return JsonResponse({"error" : get_error_serialized(110, 'offset must be integer').data})
     
-    communities = user.in_community.all()
+    communities = [com.id for com in user.in_community.all()]
     posts = []
-    for community in communities:
-        posts_temp = Post.objects.filter(community = community.id)
+    for community_id in communities:
+        if (category_filter is None) or (category_filter == ''):
+            posts_temp = Post.objects.filter(community = community_id)
+        else:
+            posts_temp = Post.objects.filter(community = community_id, category = category_filter)
         for post in posts_temp:
             posts.append(post)
     
@@ -255,13 +262,6 @@ def home_posts(request):
     
     if not (offset_str is None):
         ordered_posts = ordered_posts[PCOUNT * offset:PCOUNT * (offset + 1)]
-
-    if not (category_filter is None):
-        for post in posts:
-            if post.category == category_filter:
-                continue
-            posts = list(filter(lambda post_r: post_r.id != post.id, posts))
-    
 
     serialized_posts = PostSerializer(ordered_posts, context = {"author_depth" : True, "content_depth" : False, "viewer" : user.username}, many = True)
     return JsonResponse({"posts" : serialized_posts.data})
