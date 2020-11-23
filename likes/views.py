@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from authentication.authenticators import SimpleAuthenticator
 from .models import *
 from authentication.models import User
 from posts.models import Post
@@ -11,6 +12,8 @@ from .serializers import *
 from django.http import JsonResponse
 from user_profile.serializers import PublicProfileSerializer
 from http import HTTPStatus
+from errors.error_repository import get_error
+from errors.serializers import ErrorSerializer
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_post_likes(request):
@@ -76,15 +79,47 @@ def get_comment_likes(request):
     return JsonResponse(ViewCommentLikesSerializer(comment).data, status=HTTPStatus.OK)
 
 @api_view(['GET'])
+@authentication_classes([SimpleAuthenticator])
 def get_user_likes(request):
     username = request.query_params.get('username', None)
+    viewer = request.query_params.get('viewer', None)
     if not(username):
         return JsonResponse({'message' : "Bad request!"}, status=HTTPStatus.BAD_REQUEST)
     user = User.objects.filter(username=username).first()
     if(user is None):
         return JsonResponse({'message' : "User not found!"}, status=HTTPStatus.NOT_FOUND)
-    viewer = None
-    if not(request.user.is_anonymous):
+    if not(request.user.is_anonymous) and viewer is None:
         viewer = request.user.username
     return JsonResponse(UserLikesSerializer(user, context={'viewer': viewer}).data, status=HTTPStatus.OK)
     
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_comment_like(request):
+    user = request.user
+    comment_id = request.data.get('id', None)
+    if not(comment_id and user):
+        return JsonResponse({'message' : "Bad request!"}, status=HTTPStatus.BAD_REQUEST)
+    comment = Comment.objects.filter(id=comment_id).first()
+    if(comment is None):
+        return JsonResponse({'message' : "Comment not found!"}, status=HTTPStatus.NOT_FOUND)
+    like = CommentLike.objects.filter(user=user.id, comment=comment.id).first()
+    if(like is None):
+        return JsonResponse({'message': 'Like not found.'}, status=HTTPStatus.NOT_FOUND)
+    like.delete()
+    return JsonResponse({"message": "Like deleted successfully."}, status=HTTPStatus.OK)
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_post_like(request):
+    user = request.user
+    post_id = request.data.get('id', None)
+    if not(post_id and user):
+        return JsonResponse({'message' : "Bad request!"}, status=HTTPStatus.BAD_REQUEST)
+    post = Post.objects.filter(id=post_id).first()
+    if(post is None):
+        return JsonResponse({'message' : "Post not found!"}, status=HTTPStatus.NOT_FOUND)
+    like = PostLike.objects.filter(user=user.id, post=post.id).first()
+    if(like is None):
+        return JsonResponse({'message': 'Like not found.'}, status=HTTPStatus.NOT_FOUND)
+    like.delete()
+    return JsonResponse({"message": "Like deleted successfully."}, status=HTTPStatus.OK)
