@@ -55,7 +55,8 @@ INSTALLED_APPS = [
     'comment',
     'errors',
     'community',
-    'hashtag'
+    'hashtag',
+    'category',
 ]
 
 MIDDLEWARE = [
@@ -177,3 +178,4 @@ REST_FRAMEWORK = {
 #huddle Settings
 
 HASHTAG_MAXIMUM_LENGTH = 25
+PCOUNT = 10 # How many posts return for a page of posts
