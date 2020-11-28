@@ -42,12 +42,12 @@ def search_in_users(request):
 @api_view(['GET'])
 def search_in_posts(request):
 
-    serach_key = request.query_params.get('key', None)
+    serach_key = request.query_params.get('key', "")
     category_filter = request.query_params.get('category_filter', None)
     if category_filter == "": category_filter = None
 
-    if serach_key is None:
-        return JsonResponse({'message': get_error_serialized(103, 'key parameter is required')}, status = HTTPStatus.BAD_REQUEST)
+    if serach_key == "" and category_filter is None:
+        return JsonResponse({'message': get_error_serialized(103, '\'key\' or \'category_filter\' parameter is required')}, status = HTTPStatus.BAD_REQUEST)
     
     if not(category_filter is None) and len(category_filter) > 2:
         cf_mapped = categoryname_mapper(category_filter)
