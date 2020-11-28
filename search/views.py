@@ -47,7 +47,7 @@ def search_in_posts(request):
     if category_filter == "": category_filter = None
 
     if serach_key == "" and category_filter is None:
-        return JsonResponse({'message': get_error_serialized(103, '\'key\' or \'category_filter\' parameter is required').data}, status = HTTPStatus.BAD_REQUEST)
+        return JsonResponse({'error': get_error_serialized(103, '\'key\' or \'category_filter\' parameter is required').data}, status = HTTPStatus.BAD_REQUEST)
     
     if not(category_filter is None) and len(category_filter) > 2:
         cf_mapped = categoryname_mapper(category_filter)
