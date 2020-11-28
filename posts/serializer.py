@@ -15,6 +15,7 @@ class PostSerializer(serializers.ModelSerializer):
     likes_number = serializers.SerializerMethodField()
     hashtags = serializers.SerializerMethodField()
     category = serializers.SerializerMethodField()
+    header_image = serializers.SerializerMethodField()
 
     def get_hashtags(self, instance):
         records = PostHashtag.objects.filter(post=instance.id)
@@ -49,6 +50,11 @@ class PostSerializer(serializers.ModelSerializer):
             return None
         category_id = instance.category_id
         return Category.objects.filter(name = category_id).first().get_name_display()
+    
+    def get_header_image(self, instance):
+        if "undefined" in str(instance.header_image) or "null" in str(instance.header_image) or str(instance.header_image) == "":
+            return None
+        return str(instance.header_image)
 
     class Meta:
         model = Post
