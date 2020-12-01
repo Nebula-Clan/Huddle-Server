@@ -7,6 +7,8 @@ from posts.serializer import PostSerializer
 from likes.models import PostLike
 from .models import *
 from .edit_distance import *
+from errors.error_repository import get_error, get_error_serialized
+from errors.serializers import ErrorSerializer
 #  Create your views here.
 @api_view(['GET'])
 def get_hashtag_posts(request):
@@ -16,10 +18,10 @@ def get_hashtag_posts(request):
     if not(request.user.is_anonymous):
         viewer = request.user.username
     if(hashtag_text is None):
-        return JsonResponse({'message' : "Bad request!"}, status=HTTPStatus.BAD_REQUEST)
+        return JsonResponse(ErrorSerializer(get_error(103)).data, status=HTTPStatus.BAD_REQUEST)
     hashtag = Hashtag.objects.filter(text=hashtag_text).first()
     if(hashtag is None):
-        return JsonResponse({'message' : "Hashtag not found!"}, status=HTTPStatus.NOT_FOUND)
+        return JsonResponse(get_error_serialized(100, "Hashtag not found!").data, status=HTTPStatus.NOT_FOUND)
     records = PostHashtag.objects.filter(hashtag=hashtag.id)
     posts = [record.post for record in records]
     if(sort == 'latest'):
@@ -32,7 +34,7 @@ def get_hashtag_posts(request):
 def get_similar_to(request):
     string = request.query_params.get('text', None)
     if(string is None):
-        return JsonResponse({'message' : "Bad request!"}, status=HTTPStatus.BAD_REQUEST)
+        return JsonResponse(ErrorSerializer(get_error(103)).data, status=HTTPStatus.BAD_REQUEST)
     hashtags = Hashtag.objects.all()
     edit_distances = {}
     for hashtag in hashtags:

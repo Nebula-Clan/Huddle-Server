@@ -13,6 +13,7 @@ errors_list = [
     (109, 'Community with this name already exists'),
     (110, 'This user already follow requested user'),
     (111, 'This user dont follow requested user')
+    (110, 'Same like exists!')
 ]
 
 def get_error(code):

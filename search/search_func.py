@@ -36,18 +36,22 @@ def generate_search_token(word):
     search_tokens.extend(dele)
     return search_tokens
 
+
+# data is a list of tuples serach function search in first elements and return secend elements
 def search(inp, data):
+    inp = inp.lower()
     finded = []
     words = re.split('[^A-Za-z0-9]+', inp)
     for exp in data:
-        exp_clean = re.sub('[^A-Za-z0-9]+', '', exp)
+        exp_clean = re.sub('[^A-Za-z0-9]+', '', exp[0]).lower()
         for word in words:
             if word in exp_clean:
-                finded.append(exp)
+                finded.append(exp[1])
                 continue
-            if len(word) < 4: continue
+            if len(word) < 4:
+                continue
             search_tokens = generate_search_token(word)
             for search_token in search_tokens:
                 if search_token in exp_clean:
-                    finded.append(exp)
+                    finded.append(exp[1])
     return finded

@@ -7,6 +7,7 @@ from user_profile.serializers import PublicProfileSerializer
 from hashtag.models import Hashtag, PostHashtag
 from hashtag.serializers import HashtagSerializer
 from category.models import Category
+from category.serializers import CategorySerializer
 
 class PostSerializer(serializers.ModelSerializer):
     is_liked = serializers.SerializerMethodField()
@@ -15,6 +16,7 @@ class PostSerializer(serializers.ModelSerializer):
     likes_number = serializers.SerializerMethodField()
     hashtags = serializers.SerializerMethodField()
     category = serializers.SerializerMethodField()
+    header_image = serializers.SerializerMethodField()
 
     def get_hashtags(self, instance):
         records = PostHashtag.objects.filter(post=instance.id)
@@ -48,7 +50,12 @@ class PostSerializer(serializers.ModelSerializer):
         if instance.category is None:
             return None
         category_id = instance.category_id
-        return Category.objects.filter(name = category_id).first().get_name_display()
+        return CategorySerializer(Category.objects.get(name = category_id)).data
+    
+    def get_header_image(self, instance):
+        if "undefined" in str(instance.header_image) or "null" in str(instance.header_image) or str(instance.header_image) == "":
+            return None
+        return str(instance.header_image)
 
     class Meta:
         model = Post
