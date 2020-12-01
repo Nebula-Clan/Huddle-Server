@@ -11,9 +11,9 @@ errors_list = [
     (107, 'User already exists in this community'),
     (108, 'Order key parameter only can be \'top\', \'hot\', \'new\''),
     (109, 'Community with this name already exists'),
-    (110, 'This user already follow requested user'),
-    (111, 'This user dont follow requested user')
-    (110, 'Same like exists!')
+    (110, 'Same like exists!'),
+    (111, 'This user dont follow requested user'),
+    (112, 'This user already follow requested user'),
 ]
 
 def get_error(code):

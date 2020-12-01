@@ -16,65 +16,72 @@ def send_follow(request):
     if to_follow_username is None:
         return JsonResponse({"error" : get_error_serialized(103, 'Username of to follow user must be sended').data})
     
-    to_follow = User.objects.get(username = to_follow_username)
+    to_follow = User.objects.filter(username = to_follow_username).first()
     if to_follow is None:
         return JsonResponse({"error" : get_error_serialized(100, 'User with sended username does not exists').data})
 
-    if UserFollowing.objects.filter(user = user, following_user = to_follow).exist():
-        return JsonResponse({"error" : get_error_serialized(110).data})
+    if UserFollowing.objects.filter(user = user, following_user = to_follow).exists():
+        return JsonResponse({"error" : get_error_serialized(112).data})
 
     UserFollowing.objects.create(user = user, following_user = to_follow)
 
-    return JsonResponse({"message" : f"user {to_follow.username} followed by {user.username}"})
+    return JsonResponse({"message" : f"user {to_follow.username} followed by {user.username} successfuly"})
 
-@api_view(['POST'])
+@api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def send_unfollow(request):
     user = request.user
     
-    to_unfollow_username = request.data.get('to_unfollow', None)
+    to_unfollow_username = request.query_params.get('to_unfollow', None)
     if to_unfollow_username is None:
         return JsonResponse({"error" : get_error_serialized(103, 'Username of to unfollow user must be sended').data})
     
-    to_unfollow = User.objects.get(username = to_unfollow_username)
+    to_unfollow = User.objects.filter(username = to_unfollow_username).first()
     if to_unfollow is None:
         return JsonResponse({"error" : get_error_serialized(100, 'User with sended username does not exists').data})
 
-    finded_following = UserFollowing.objects.get(user = user, following_user = to_unfollow)
+    finded_following = UserFollowing.objects.filter(user = user, following_user = to_unfollow).first()
 
     if finded_following is None:
         return JsonResponse({"error" : get_error_serialized(111).data})
     
     finded_following.delete()
 
+    return JsonResponse({"message" : f"User {to_unfollow_username} unfollowed successfuly"})
+
 
 @api_view(['GET'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def user_followings(request):
+    viewer = request.user
     username = request.query_params.get('username', None)
     if username is None:
         return JsonResponse({"error" : get_error_serialized(103, 'Username is required').data})
 
-    user = User.objects.get(username = username)
+    user = User.objects.filter(username = username).first()
     if user is None:
-        return JsonResponse({"error" : get_error_serialized(100, 'User with this username does not exists').data})
+        return JsonResponse({"error" : get_error_serialized(100, 'User with sended username does not exists').data})
     
-    user_followings = UserFollowing.objects.filter(user = user.id)
-    user_followings_serialized = PublicProfileSerializer(user_followings, many = True)
+    user_following_ids = UserFollowing.objects.filter(user = user).values_list('following_user')
+    user_followings = [User.objects.get(id = user_id[0]) for user_id in user_following_ids]
+    user_followings_serialized = PublicProfileSerializer(user_followings, context = {"viewer_id" : viewer.id}, many = True)
     return JsonResponse({"user_followings" : user_followings_serialized.data})
 
 
 @api_view(['GET'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def user_followers(request):
+    viewer = request.user
     username = request.query_params.get('username', None)
     if username is None:
         return JsonResponse({"error" : get_error_serialized(103, 'Username is required').data})
 
-    user = User.objects.get(username = username)
+    user = User.objects.filter(username = username).first()
     if user is None:
         return JsonResponse({"error" : get_error_serialized(100, 'User with this username does not exists').data})
     
-    user_followers = UserFollowing.objects.filter(following_user = user.id)
-    user_followers_serialized = PublicProfileSerializer(user_followers, many = True)
-    return JsonResponse({"user_followings" : user_followers_serialized.data})
+    user_follower_ids = UserFollowing.objects.filter(following_user = user).values_list('user')
+    print(user_follower_ids)
+    user_followers = [User.objects.get(id = user_id[0]) for user_id in user_follower_ids]
+    user_followers_serialized = PublicProfileSerializer(user_followers, context = {"viewer_id" : viewer.id}, many = True)
+    return JsonResponse({"user_followers" : user_followers_serialized.data})
