@@ -99,8 +99,8 @@ def update_password(request):
     if new_pass is None:
         return JsonResponse({"error" : get_error_serialized(103, 'password field is required').data}, status = HTTPStatus.BAD_REQUEST)
     
-    if User.check_password(user, new_password):
-        return JsonResponse({"error" : get_error_serialized().data}, status = HTTPStatus.BAD_REQUEST)
+    if User.check_password(user, new_pass):
+        return JsonResponse({"error" : get_error_serialized(113).data}, status = HTTPStatus.BAD_REQUEST)
     
     user.set_password(new_pass)
     user.save(update_fields = ['password'])
