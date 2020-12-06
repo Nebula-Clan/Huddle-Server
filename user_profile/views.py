@@ -62,7 +62,7 @@ def update_picture(request):
     profile_picture = request.data.get('profile_picture', None)
     banner_picture = request.data.get('banner_picture', None)
     if not(profile_picture or banner_picture):
-        return JsonResponse({"error" : get_error_serialized(103, 'profile_picture or banner_picture field is required').data})
+        return JsonResponse({"error" : get_error_serialized(103, 'profile_picture or banner_picture field is required').data}, status = HTTPStatus.BAD_REQUEST)
     
     to_return_message = ""
 
@@ -85,12 +85,27 @@ def update_username(request):
     user = request.user
     new_username = request.data.get('username', None)
     if new_username is None:
-        return JsonResponse({"error" : get_error_serialized(103, 'username filed is required').data})
-    
+        return JsonResponse({"error" : get_error_serialized(103, 'username field is required').data}, status = HTTPStatus.BAD_REQUEST)
+
     user.username = new_username
     user.save(update_fields = ['username'])
 
     return JsonResponse({"message": f"username updated successfuly to {new_username}"})
+    
+@api_view(['PUT'])
+def update_password(request):
+    user = request.user
+    new_pass = request.data.get('password', None)
+    if new_pass is None:
+        return JsonResponse({"error" : get_error_serialized(103, 'password field is required').data}, status = HTTPStatus.BAD_REQUEST)
+    
+    if User.check_password(user, new_password):
+        return JsonResponse({"error" : get_error_serialized().data}, status = HTTPStatus.BAD_REQUEST)
+    
+    user.set_password(new_pass)
+    user.save(update_fields = ['password'])
+
+    return JsonResponse({"message": f"password updated successfuly to {new_pass}"})
     
 @api_view(['PUT'])
 def update_name(request):
@@ -98,7 +113,7 @@ def update_name(request):
     first_name = request.data.get('first_name', None)
     last_name = request.data.get('last_name', None)
     if first_name is None and last_name is None:
-        return JsonResponse({"error" : get_error_serialized(103, 'first_name or last_name filed is required').data})
+        return JsonResponse({"error" : get_error_serialized(103, 'first_name or last_name field is required').data}, status = HTTPStatus.BAD_REQUEST)
 
     to_return_message = ""
 
