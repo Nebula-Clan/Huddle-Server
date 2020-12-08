@@ -4,5 +4,6 @@ from . import views
 
 urlpatterns = [
     url(r'^public', views.get_public_profile),
-    url(r'^update_profile', views.update_profile)
+    url(r'^update_profile', views.update_profile),
+    url(r'^update_password', views.update_password),
 ]

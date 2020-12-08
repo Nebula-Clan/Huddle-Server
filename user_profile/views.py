@@ -104,3 +104,22 @@ def update_profile(request):
         to_return_message += " ,biology successfuly updated"
     
     return JsonResponse({"message" : to_return_message})
+
+
+@api_view(['PUT'])
+def update_password(request):
+    user = request.user
+
+    old_pass = request.data.get('old_password', None)
+    new_pass = request.data.get('new_password', None)
+
+    if not(old_pass and new_pass):
+        return JsonResponse({"error" : get_error_serialized(103, "new_password or old_password field is required").data}, HTTPStatus.BAD_REQUEST)
+
+    if not User.check_password(user, old_pass):
+        return JsonResponse({"error" : get_error_serialized(101).data}, status = HTTPStatus.BAD_REQUEST)
+    
+    user.set_password(new_pass)
+    user.save(update_fields = ['password'])
+
+    return JsonResponse({"message" : "password successfuly updated"})
