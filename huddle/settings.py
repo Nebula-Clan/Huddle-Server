@@ -39,6 +39,7 @@ CORS_ALLOWED_ORIGINS = [
 # Application definition
 
 INSTALLED_APPS = [
+    'channels',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -57,6 +58,7 @@ INSTALLED_APPS = [
     'community',
     'hashtag',
     'category',
+    'chat'
 ]
 
 MIDDLEWARE = [
@@ -90,8 +92,15 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'huddle.wsgi.application'
-
-
+ASGI_APPLICATION = 'huddle.asgi.application'
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 

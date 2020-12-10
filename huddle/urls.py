@@ -27,6 +27,7 @@ import category.urls as category_urls
 from django.conf.urls import url
 from . import settings
 from django.conf.urls.static import static
+from huddle.startup import remove_all_clients
 urlpatterns = [
     path('admin/', admin.site.urls),
     url(r'^api/auth/', include(auth_urls)),
@@ -39,6 +40,6 @@ urlpatterns = [
     url(r'^api/hashtag/', include(hashtag_urls)),
     url(r'^api/category/', include(category_urls)),
 ]
-
+remove_all_clients()
 if(settings.DEBUG):
     urlpatterns +=  static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
