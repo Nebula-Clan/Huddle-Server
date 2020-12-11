@@ -50,9 +50,15 @@ class ChatConsumer(WebsocketConsumer):
             return
         chats_from_user = list(DirectChatMessage.objects.filter(_from=self.user))
         chats_to_user = list(DirectChatMessage.objects.filter(_to=self.user))
-        users = [record._to for record in chats_from_user]
-        users += [record._from for record in chats_to_user]
-        users = list(set(users))
+        records = chats_from_user + chats_to_user
+        records = sorted(records, key=lambda x : x.date)[::-1]
+        users = []
+        for record in records:
+            
+            if(record._from.id == self.user.id and record._to not in users):
+                users.append(record._to)
+            elif (record._from not in users):
+                users.append(record._from)
         data = ChatUsersSerializer(users, context={"target_username" : self.user.username}, many=True).data
         self.send(json.dumps(data))
     def chat_message_send(self, event):
