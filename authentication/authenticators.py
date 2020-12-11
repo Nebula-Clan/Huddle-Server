@@ -25,6 +25,15 @@ class JWTAuthenticator(BaseAuthentication):
             raise exceptions.AuthenticationFailed("user not found")
         return user, access_token
 
+def authenticate(token):
+    User = get_user_model()
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+        user = User.objects.filter(id=payload['user_id']).first()
+    except:
+        user = AnonymousUser()
+    return user
+
 class SimpleAuthenticator(BaseAuthentication):
     def authenticate(self, request):
         User = get_user_model()

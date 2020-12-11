@@ -28,6 +28,7 @@ import follow.urls as follow_urls
 from django.conf.urls import url
 from . import settings
 from django.conf.urls.static import static
+from huddle.startup import remove_all_clients
 urlpatterns = [
     path('admin/', admin.site.urls),
     url(r'^api/auth/', include(auth_urls)),
@@ -41,6 +42,6 @@ urlpatterns = [
     url(r'^api/category/', include(category_urls)),
     url(r'^api/follow/', include(follow_urls)),
 ]
-
+remove_all_clients()
 if(settings.DEBUG):
     urlpatterns +=  static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
