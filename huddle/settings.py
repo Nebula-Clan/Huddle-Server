@@ -31,7 +31,7 @@ SECRET_KEY = 'wzpzt#6fe#14y10gug78a5lftfl(mmo*vfa74b5nt*ite=i3uj'
 DEBUG = True
 
 ALLOWED_HOSTS = []
-# ALLOWED_HOSTS = ['huddle.pythonanywhere.com']
+# ALLOWED_HOSTS = ['188.40.212.205']
 CORS_ALLOWED_ORIGINS = [
      "http://localhost:3000",
 ]
@@ -58,8 +58,8 @@ INSTALLED_APPS = [
     'community',
     'hashtag',
     'category',
-    'follow'
-    'chat'
+    'follow',
+    'chat',
 ]
 
 MIDDLEWARE = [
@@ -128,7 +128,7 @@ DATABASES = {
 # DATABASES = {
 # 'default': {
 #             'ENGINE': 'django.db.backends.sqlite3',
-#             'NAME': '/home/huddle/Huddle-Server/Huddle-Server.db'
+#             'NAME':  os.path.join(BASE_DIR, 'Huddle-Server.db')
 #         }
 # }
 
