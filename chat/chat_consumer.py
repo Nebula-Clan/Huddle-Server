@@ -124,6 +124,6 @@ class ChatConsumer(WebsocketConsumer):
             chats = []
         for chat in chats:
             result.append(DirectChatViewSerializer(chat, context={"target_username" : self.user.username}).data)
-        self.send({"type" : "chat.message.get", "data" : json.dumps(result)})    
+        self.send(json.dumps({"type" : "chat.message.get", "data" : json.dumps(result)}))    
         
         
