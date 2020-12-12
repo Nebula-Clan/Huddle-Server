@@ -57,7 +57,8 @@ INSTALLED_APPS = [
     'community',
     'hashtag',
     'category',
-    'follow'
+    'follow',
+    'explorer'
 ]
 
 MIDDLEWARE = [
