@@ -79,67 +79,56 @@ def create_post(request):
 @permission_classes([IsAuthenticated])
 def delete_post(request):
     author = request.user
-    post_id = request.data.get('post_id')
-    if Post.objects.filter(id = post_id).exists():
-        if author.id == Post.objects.filter(id = post_id).first().author_id:
-            Post.objects.filter(id = post_id).first().delete()
-            return JsonResponse({"message" : f"Post with ID:{post_id} deleted successfuly"})
-        else:
-            return JsonResponse({"error" : ErrorSerializer(get_error(106)).data}, status = status.HTTP_403_FORBIDDEN)
+    post_id = request.data.get('post_id', None)
+    if post_id is None:
+        return JsonResponse({"error" : get_error_serialized(103, 'post_id field is required').data}, status = status.HTTP_400_BAD_REQUEST)
+    post = Post.objects.filter(id = post_id).first()
+    if post is None:
+        return JsonResponse({"error" : get_error_serialized(100, 'Post not found!').data}, status = status.HTTP_400_BAD_REQUEST)
+    if author.id == post.author_id:
+        post.delete()
+        return JsonResponse({"message" : f"Post with ID:{post_id} deleted successfuly"})
     else:
-        return JsonResponse({"error" : ErrorSerializer(get_error(100)).data}, status = status.HTTP_404_NOT_FOUND)
-
+        return JsonResponse({"error" : ErrorSerializer(get_error(106)).data}, status = status.HTTP_403_FORBIDDEN)
+    
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 def update_post(request):
     post_id = request.data.get('post_id')
-    user = request.user
-    if not(Post.objects.filter(id = post_id).first().author_id == user.id):
-        return JsonResponse({"error" : ErrorSerializer(get_error(106)).data}, status = status.HTTP_403_FORBIDDEN)
+    post = Post.objects.filter(id = post_id).first()
 
-    fields_to_update = request.data.get('fields_update')
-    # 'title', 'description', 'content', 'category' are valid for field update
-
-    if len(fields_to_update) == 0:
-        return JsonResponse({"error" : ErrorSerializer(get_error(103)).data}, status = status.HTTP_400_BAD_REQUEST)
-
-    if 'title' in fields_to_update:
-        try:
-            new_title = request.data.get('title')
-        except:
-            return JsonResponse({"error" : ErrorSerializer(get_error(103)).data}, status = status.HTTP_400_BAD_REQUEST)
-        post_finded = Post.objects.filter(id = post_id).first()
-        post_finded.title = new_title
-        post_finded.save(update_fields = ['title'])
-
-    if 'description' in fields_to_update:
-        try:
-            new_description = request.data.get('description')
-        except:
-            return JsonResponse({"error" : ErrorSerializer(get_error(103)).data}, status = status.HTTP_400_BAD_REQUEST)
-        post_finded = Post.objects.filter(id = post_id).first()
-        post_finded.description = new_description
-        post_finded.save(update_fields = ['description'])
+    if post is None:
+        return JsonResponse({"error" : get_error_serialized(100, 'Post not found!').data}, status = status.HTTP_400_BAD_REQUEST)
     
-    if 'content' in fields_to_update:
-        try:
-            new_content = request.data.get('content')
-        except:
-            return JsonResponse({"error" : ErrorSerializer(get_error(103)).data}, status = status.HTTP_400_BAD_REQUEST)
-        content_id = Post.objects.filter(id = post_id).first().post_content_id
+    user = request.user
+    
+    if post.author_id != user.id:
+        return JsonResponse({"error" : ErrorSerializer(get_error(106)).data}, status = status.HTTP_403_FORBIDDEN)
+    
+    # 'title', 'description', 'content', 'header_image' are valid for field update
+    new_title = request.data.get('title', None)
+    new_des = request.data.get('description', None)
+    new_content = request.data.get('content', None)
+    new_image = request.data.get('header_image', None)
+    
+    if new_title is not None:
+        post.title = new_title
+        post.save(update_fields = ['title'])
+
+    if new_des is not None:
+        post.description = new_des
+        post.save(update_fields = ['description'])
+    
+    if new_content is not None:
+        content_id = post.post_content_id
         content_finded = Content.objects.filter(id = content_id).first()
         content_finded.content_text = new_content
         content_finded.save(update_fields = ['content_text'])
 
-    if 'category' in fields_to_update:
-        try:
-            new_category = request.data.get('category')
-        except:
-            return JsonResponse({"error" : ErrorSerializer(get_error(103)).data}, status = status.HTTP_400_BAD_REQUEST)
-        post_finded = Post.objects.filter(id = post_id).first()
-        post_finded.category = new_category
-        post_finded.save(update_fields = ['category'])
+    if new_image is not None:
+        post.header_image = new_image
+        post.save(update_fields = ['header_image'])
     
     return JsonResponse({"message" : "All fields updated successfuly"})
 
