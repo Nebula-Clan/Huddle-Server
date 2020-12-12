@@ -68,7 +68,7 @@ class ChatConsumer(WebsocketConsumer):
         for record in records:
             if(record._from.id == self.user.id and record._to not in users):
                 users.append(record._to)
-            elif (record.to.id == self.user.id and record._from not in users):
+            elif (record._to.id == self.user.id and record._from not in users):
                 users.append(record._from)
         result = []
         for user in users: 
