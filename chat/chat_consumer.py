@@ -42,7 +42,7 @@ class ChatConsumer(WebsocketConsumer):
         record = Clients.objects.filter(username=user, channel_name=self.channel_name).first()
         if(record is None):
             Clients.objects.create(username=user, channel_name=self.channel_name)
-        self.send(json.dumps({"message" : "Authenticatied."}))
+        self.send(json.dumps({"type" : "chat.authenticate", "message" : "Authenticatied."}))
     
     def chat_users(self, event):
         if(self.user is None):
@@ -60,7 +60,7 @@ class ChatConsumer(WebsocketConsumer):
             elif (record._from not in users):
                 users.append(record._from)
         data = ChatUsersSerializer(users, context={"target_username" : self.user.username}, many=True).data
-        self.send(json.dumps(data))
+        self.send(json.dumps({"type" : "chat.users", "data" : data}))
     def chat_message_send(self, event):
         if(self.user is None):
             self.send(json.dumps({"error" : get_error_serialized(AUTHENTICATION_REQUIRED).data}))
@@ -83,8 +83,7 @@ class ChatConsumer(WebsocketConsumer):
             {"type" : "chat.message.recieve", 
              "message" : DirectChatViewSerializer(instance=chat, context={"target_username" : self.user.username}).data})   
     def chat_message_recieve(self, event):
-        j = json.dumps(event["message"])
-        self.send(j)
+        self.send(event)
     def chat_message_get(self, event):
         if(self.user is None):
             self.send(json.dumps({"error" : get_error_serialized(AUTHENTICATION_REQUIRED).data}))
@@ -112,6 +111,6 @@ class ChatConsumer(WebsocketConsumer):
             chats = []
         for chat in chats:
             result.append(DirectChatViewSerializer(chat, context={"target_username" : self.user.username}).data)
-        self.send(json.dumps(result))    
+        self.send({"type" : "chat.message.get", "data" : json.dumps(result)})    
         
         
