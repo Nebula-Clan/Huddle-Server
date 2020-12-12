@@ -5,8 +5,8 @@ from django.contrib.auth.models import AnonymousUser
 from asgiref.sync import async_to_sync
 from authentication.authenticators import authenticate
 from errors.error_repository import AUTHENTICATION_FAILED, AUTHENTICATION_REQUIRED,PERMISSION_DENIED, OBJECT_NOT_FOUND, MISSING_REQUIRED_FIELDS, get_error_serialized
-
-from chat.models import Clients, DirectChatMessage
+from django.utils.timezone import now
+from chat.models import Clients, DirectChatMessage, LastSeen
 from chat.serializers import ChatUsersSerializer, DirectChatViewSerializer
 from django.contrib.auth import get_user_model
 import huddle.utils as utils
@@ -20,6 +20,13 @@ class ChatConsumer(WebsocketConsumer):
     def disconnect(self, close_code):
         if(self.user is not None):
             Clients.objects.filter(username=self.user.id, channel_name=self.channel_name).delete()
+            last_seen_data = LastSeen.objects.filter(user=self.user).first()
+            if(last_seen_data is None):
+                print("Creating")
+                last_seen_data = LastSeen.objects.create(user=self.user)
+            # last_seen_data.last_seen = now()/
+            last_seen_data.save()
+            print(last_seen_data)
             self.user = None
 
     def receive(self, text_data):
@@ -39,6 +46,11 @@ class ChatConsumer(WebsocketConsumer):
             self.send(json.dumps({"error" : get_error_serialized(PERMISSION_DENIED).data}))
             self.close()
             return
+        last_seen_data = LastSeen.objects.filter(user=user).first()
+        if(last_seen_data is None):
+            last_seen_data = LastSeen.objects.create(user=self.user)
+        # last_seen_data.last_seen = now()
+        last_seen_data.save()
         record = Clients.objects.filter(username=user, channel_name=self.channel_name).first()
         if(record is None):
             Clients.objects.create(username=user, channel_name=self.channel_name)
@@ -54,13 +66,14 @@ class ChatConsumer(WebsocketConsumer):
         records = sorted(records, key=lambda x : x.date)[::-1]
         users = []
         for record in records:
-            
             if(record._from.id == self.user.id and record._to not in users):
                 users.append(record._to)
-            elif (record._from not in users):
+            elif (record._from.id == self.user.id and record._from not in users):
                 users.append(record._from)
-        data = ChatUsersSerializer(users, context={"target_username" : self.user.username}, many=True).data
-        self.send(json.dumps({"type" : "chat.users", "data" : data}))
+        result = []
+        for user in users: 
+            result.append(ChatUsersSerializer(user, context={"target_username" : self.user.username}).data)
+        self.send(json.dumps({"type" : "chat.users", "data" : result}))
     def chat_message_send(self, event):
         if(self.user is None):
             self.send(json.dumps({"error" : get_error_serialized(AUTHENTICATION_REQUIRED).data}))
@@ -81,9 +94,9 @@ class ChatConsumer(WebsocketConsumer):
         for session in other_user_active_sessions:
             async_to_sync(channel_layer.send)(session.channel_name, 
             {"type" : "chat.message.recieve", 
-             "message" : DirectChatViewSerializer(instance=chat, context={"target_username" : self.user.username}).data})   
+             "message" : DirectChatViewSerializer(instance=chat, context={"target_username" : user_to.username}).data})   
     def chat_message_recieve(self, event):
-        self.send(event)
+        self.send(json.dumps(event))
     def chat_message_get(self, event):
         if(self.user is None):
             self.send(json.dumps({"error" : get_error_serialized(AUTHENTICATION_REQUIRED).data}))

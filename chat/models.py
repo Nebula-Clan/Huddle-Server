@@ -10,6 +10,9 @@ class DirectChatMessage(models.Model):
     seen = models.BooleanField(default=False)
     date = models.DateTimeField(auto_now_add=True)
     
+class LastSeen(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    date = models.DateTimeField(auto_now=True)
 
 class Clients(models.Model):
     channel_name = models.TextField(max_length=1000)
