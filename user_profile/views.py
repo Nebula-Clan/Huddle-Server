@@ -9,8 +9,11 @@ from likes.models import PostLike, CommentLike
 from comment.serializers import UserCommentSerializer
 from errors.error_repository import get_error_serialized, get_error
 from errors.serializers import ErrorSerializer
+from rest_framework.permissions import permission_classes, AllowAny, IsAuthenticated
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def get_public_profile(request):
+    viewer = request.user
     username = request.query_params.get('username', None)
     if(username is None):
         return JsonResponse(ErrorSerializer(get_error(103)).data, status=HTTPStatus.BAD_REQUEST)
@@ -18,7 +21,7 @@ def get_public_profile(request):
     user = User.objects.filter(username=username).first()
     if(user is None):
         return JsonResponse(get_error_serialized(100, "User not found!").data, status=HTTPStatus.NOT_FOUND)
-    public_profile = PublicProfileSerializer(user)
+    public_profile = PublicProfileSerializer(user, context = {"viewer_id" : viewer.id})
     data = public_profile.data
     data['follower'] = "5"
     data['follower'] = "10"
@@ -114,7 +117,7 @@ def update_password(request):
     new_pass = request.data.get('new_password', None)
 
     if not(old_pass and new_pass):
-        return JsonResponse({"error" : get_error_serialized(103, "new_password or old_password field is required").data}, HTTPStatus.BAD_REQUEST)
+        return JsonResponse({"error" : get_error_serialized(103, "new_password or old_password field is required").data}, status = status.HTTPStatus.BAD_REQUEST)
 
     if not User.check_password(user, old_pass):
         return JsonResponse({"error" : get_error_serialized(101).data}, status = HTTPStatus.BAD_REQUEST)
