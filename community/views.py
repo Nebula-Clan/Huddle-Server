@@ -64,6 +64,7 @@ def get_community(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_community_members(request):
+    viewer = request.user
     cm_name = request.query_params.get('name', None)
     if cm_name is None:
         return JsonResponse({"error" : ErrorSerializer(get_error(103)).data}, status = status.HTTP_400_BAD_REQUEST)
