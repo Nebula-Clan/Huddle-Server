@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'category',
     'follow',
     'chat',
+    'draft',
 ]
 
 MIDDLEWARE = [

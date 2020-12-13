@@ -25,6 +25,7 @@ import community.urls as community_urls
 import hashtag.urls as hashtag_urls
 import category.urls as category_urls
 import follow.urls as follow_urls
+import draft.urls as draft_urls
 from django.conf.urls import url
 from . import settings
 from django.conf.urls.static import static
@@ -41,6 +42,7 @@ urlpatterns = [
     url(r'^api/hashtag/', include(hashtag_urls)),
     url(r'^api/category/', include(category_urls)),
     url(r'^api/follow/', include(follow_urls)),
+    url(r'^api/draft/', include(draft_urls)),
 ]
 remove_all_clients()
 if(settings.DEBUG):
