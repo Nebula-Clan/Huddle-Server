@@ -64,6 +64,7 @@ def get_community(request):
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_community_members(request):
+    viewer = request.user
     cm_name = request.query_params.get('name', None)
     if cm_name is None:
         return JsonResponse({"error" : ErrorSerializer(get_error(103)).data}, status = status.HTTP_400_BAD_REQUEST)
@@ -71,7 +72,7 @@ def get_community_members(request):
     if community is None:
         return JsonResponse({"error" : ErrorSerializer(get_error(100)).data}, status = status.HTTP_404_NOT_FOUND)
     members = community.users.all()
-    return JsonResponse({"members" : PublicProfileSerializer(members, many = True).data})
+    return JsonResponse({"members" : PublicProfileSerializer(members, many = True, context = {"viewer_id" : viewer.id}).data})
 
 @api_view(['GET'])
 def get_community_posts(request):
