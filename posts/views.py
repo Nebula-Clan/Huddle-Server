@@ -20,19 +20,22 @@ from category.models import categories as categories_list
 from .home_post_helper import *
 from huddle.settings import PCOUNT
 from category.methods import *
+from draft.models import DraftPost
 # Create your views here.
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def create_post(request):
+def create_post(request, is_draft = False):
     author = request.user
     author_id = author.id
 
-    title = request.data.get('title')
-    content = request.data.get('content') # A base64 string for psot content
+    # is_draft = request.data.get('is_draft', False)
+
+    title = request.data.get('title', '')
+    content = request.data.get('content', '') # A base64 string for psot content
     category = request.data.get('category', None)
-    content_type = request.data.get('content_type') # AV: ArticleView, OI: OnlyImage, OT: OnlyText
-    description = request.data.get('description')
+    content_type = request.data.get('content_type', 'OT') # AV: ArticleView, OI: OnlyImage, OT: OnlyText
+    description = request.data.get('description', '')
     community_name = request.data.get('community_name')
     hashtags = request.data.get('hashtags')
     
@@ -59,8 +62,12 @@ def create_post(request):
     post_content = Content(content_type = content_type, content_text = content)
     post_content.save()
 
-    to_create_post = Post(title = title, description = description, post_content = post_content,
-                            category = post_category, community = community, author = author)
+    if is_draft:
+        to_create_post = DraftPost(title = title, description = description, post_content = post_content,
+                                category = post_category, community = community, author = author)
+    else:
+        to_create_post = Post(title = title, description = description, post_content = post_content,
+                                category = post_category, community = community, author = author)
     to_create_post.save()
 
     # adding image field after saving post in database because of image name is generated based on post_id
@@ -77,12 +84,15 @@ def create_post(request):
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
-def delete_post(request):
+def delete_post(request, is_draft = False):
     author = request.user
-    post_id = request.data.get('post_id', None)
+    post_id = request.query_params.get('id', None)
     if post_id is None:
-        return JsonResponse({"error" : get_error_serialized(103, 'post_id field is required').data}, status = status.HTTP_400_BAD_REQUEST)
-    post = Post.objects.filter(id = post_id).first()
+        return JsonResponse({"error" : get_error_serialized(103, 'id field is required').data}, status = status.HTTP_400_BAD_REQUEST)
+    if is_draft:
+        post = DraftPost.objects.filter(id = post_id).first()
+    else:
+        post = Post.objects.filter(id = post_id).first()
     if post is None:
         return JsonResponse({"error" : get_error_serialized(100, 'Post not found!').data}, status = status.HTTP_400_BAD_REQUEST)
     if author.id == post.author_id:
@@ -94,9 +104,12 @@ def delete_post(request):
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
-def update_post(request):
-    post_id = request.data.get('post_id')
-    post = Post.objects.filter(id = post_id).first()
+def update_post(request, is_draft = False):
+    post_id = request.data.get('id')
+    if is_draft:
+        post = DraftPost.objects.filter(id = post_id).first()
+    else:
+        post = Post.objects.filter(id = post_id).first()
 
     if post is None:
         return JsonResponse({"error" : get_error_serialized(100, 'Post not found!').data}, status = status.HTTP_400_BAD_REQUEST)
