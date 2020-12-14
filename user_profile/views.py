@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.http import JsonResponse
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from http import HTTPStatus
 from authentication.models import User
 from posts.models import Post
@@ -9,7 +9,7 @@ from likes.models import PostLike, CommentLike
 from comment.serializers import UserCommentSerializer
 from errors.error_repository import get_error_serialized, get_error
 from errors.serializers import ErrorSerializer
-from rest_framework.permissions import permission_classes, AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_public_profile(request):
