@@ -62,7 +62,15 @@ def user_followings(request):
     if user is None:
         return JsonResponse({"error" : get_error_serialized(100, 'User with sended username does not exists').data})
     
-    user_following_ids = UserFollowing.objects.filter(user = user).values_list('following_user')
+    user_following_ids = list(UserFollowing.objects.filter(user = user).values_list('following_user'))
+    
+    # replace viewer followings to first
+    user_following_ids.sort(key = lambda user_id: UserFollowing.objects.filter(user = viewer.id, following_user = user_id).exists(), reverse = True)
+    
+    # replace viewer to first place
+    # viewer_index = user_following_ids.index(viewer.id)
+    # user_following_ids[0], user_following_ids[viewer_index] = user_following_ids[viewer_index], user_following_ids[0]
+    
     user_followings = [User.objects.get(id = user_id[0]) for user_id in user_following_ids]
     user_followings_serialized = PublicProfileSerializer(user_followings, context = {"viewer_id" : viewer.id}, many = True)
     return JsonResponse({"user_followings" : user_followings_serialized.data})
@@ -80,8 +88,15 @@ def user_followers(request):
     if user is None:
         return JsonResponse({"error" : get_error_serialized(100, 'User with this username does not exists').data})
     
-    user_follower_ids = UserFollowing.objects.filter(following_user = user).values_list('user')
+    user_follower_ids = list(UserFollowing.objects.filter(following_user = user).values_list('user'))
     print(user_follower_ids)
+    # replace viewer followings to first
+    user_follower_ids.sort(key = lambda user_id: UserFollowing.objects.filter(user = viewer.id, following_user = user_id).exists(), reverse = True)
+    
+    # replace viewer to first place
+    # viewer_index = user_follower_ids.index(viewer.id)
+    # user_follower_ids[0], user_follower_ids[viewer_index] = user_follower_ids[viewer_index], user_follower_ids[0]
+
     user_followers = [User.objects.get(id = user_id[0]) for user_id in user_follower_ids]
     user_followers_serialized = PublicProfileSerializer(user_followers, context = {"viewer_id" : viewer.id}, many = True)
     return JsonResponse({"user_followers" : user_followers_serialized.data})
