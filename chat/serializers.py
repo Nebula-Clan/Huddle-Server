@@ -3,17 +3,24 @@ from .models import DirectChatMessage
 import rest_framework.serializers as serializers
 from user_profile.serializers import PublicProfileSerializer
 from authentication.models import User
-from chat.models import Clients, LastSeen
+from chat.models import Clients, LastSeen, ChatFiles
 from errors.error_repository import get_error_serialized, OBJECT_NOT_FOUND
 class DirectChatSerializer(serializers.ModelSerializer):
     class Meta:
         model = DirectChatMessage
         fields = ['id', 'text', '_from', '_to']
-
+class ChatFileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ChatFiles
+        fields = ['file', 'is_image']
 class DirectChatViewSerializer(serializers.ModelSerializer):
     is_sender = serializers.SerializerMethodField()
     _from = serializers.SerializerMethodField(method_name="get_from")
     _to = serializers.SerializerMethodField(method_name="get_to")
+    files = serializers.SerializerMethodField()
+    def get_files(self, instance):
+        records = ChatFiles.objects.filter(chat=instance)
+        return ChatFileSerializer(instance=records, many=True).data
     def get_from(self, instance):
         return PublicProfileSerializer(instance=instance._from).data
     def get_to(self, instance):
@@ -25,7 +32,7 @@ class DirectChatViewSerializer(serializers.ModelSerializer):
         return self.instance._from.username == sender_username
     class Meta:
         model = DirectChatMessage
-        fields = ['id', 'text', '_from', '_to', 'date', 'seen', 'is_sender']
+        fields = ['id', 'text', 'files', '_from', '_to', 'date', 'seen', 'is_sender']
 
 class LastSeenSerializer(serializers.ModelSerializer):
     class Meta:
