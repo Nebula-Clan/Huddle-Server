@@ -35,16 +35,24 @@ class ChatUsersSerializer(serializers.ModelSerializer):
     user = serializers.SerializerMethodField()
     last_seen = serializers.SerializerMethodField()
     last_message = serializers.SerializerMethodField()
+    usneen_messages_count = serializers.SerializerMethodField()
+    def get_usneen_messages_count(self, instance):
+        target_username = self.context.get("target_username", None)
+        target = User.objects.filter(username=target_username).first()
+        if(target is None):
+            return {"error" : get_error_serialized(OBJECT_NOT_FOUND, detail="User not found.")}
+        records = list(DirectChatMessage.objects.filter(_from=instance, _to=target))
+        return len([r for r in records if not r.seen])
     def get_user(self, instance):
         return PublicProfileSerializer(instance=instance).data
     def get_last_message(self, instance):
-        sender_username = self.context.get("target_username", None)
-        sender = User.objects.filter(username=sender_username).first()
-        if(sender is None):
-            return {"error" : get_error_serialized(OBJECT_NOT_FOUND, detail="Sender not found.")}
+        target_username = self.context.get("target_username", None)
+        target = User.objects.filter(username=target_username).first()
+        if(target is None):
+            return {"error" : get_error_serialized(OBJECT_NOT_FOUND, detail="User not found.")}
         
-        records = list(DirectChatMessage.objects.filter(_from=instance, _to=sender))
-        records += list(DirectChatMessage.objects.filter(_to=instance, _from= sender))
+        records = list(DirectChatMessage.objects.filter(_from=instance, _to=target))
+        records += list(DirectChatMessage.objects.filter(_to=instance, _from= target))
         records = sorted(records, key=lambda x: x.date)[::-1]
         return DirectChatViewSerializer(
                         instance=records[0], 
@@ -60,4 +68,4 @@ class ChatUsersSerializer(serializers.ModelSerializer):
         return LastSeenSerializer(last_seen).data['date']
     class Meta:
         model = User
-        fields = ['user', 'last_seen', 'last_message']
+        fields = ['user', 'last_seen', 'usneen_messages_count', 'last_message']
