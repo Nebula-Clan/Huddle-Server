@@ -22,11 +22,9 @@ class ChatConsumer(WebsocketConsumer):
             Clients.objects.filter(username=self.user.id, channel_name=self.channel_name).delete()
             last_seen_data = LastSeen.objects.filter(user=self.user).first()
             if(last_seen_data is None):
-                print("Creating")
                 last_seen_data = LastSeen.objects.create(user=self.user)
             # last_seen_data.last_seen = now()/
             last_seen_data.save()
-            print(last_seen_data)
             self.user = None
 
     def receive(self, text_data):
@@ -74,6 +72,7 @@ class ChatConsumer(WebsocketConsumer):
         for user in users: 
             result.append(ChatUsersSerializer(user, context={"target_username" : self.user.username}).data)
         self.send(json.dumps({"type" : "chat.users", "data" : result}))
+    
     def chat_message_send(self, event):
         if(self.user is None):
             self.send(json.dumps({"error" : get_error_serialized(AUTHENTICATION_REQUIRED).data}))
@@ -91,12 +90,44 @@ class ChatConsumer(WebsocketConsumer):
         chat = DirectChatMessage.objects.create(_to=user_to, text=text, _from=self.user, seen=False)
         other_user_active_sessions = Clients.objects.filter(username=user_to)
         channel_layer = get_channel_layer()
+        data = {
+                    "type" : "chat.message.recieve", 
+                    "message" : DirectChatViewSerializer(instance=chat, context={"target_username" : user_to.username}).data
+               }
         for session in other_user_active_sessions:
-            async_to_sync(channel_layer.send)(session.channel_name, 
-            {"type" : "chat.message.recieve", 
-             "message" : DirectChatViewSerializer(instance=chat, context={"target_username" : user_to.username}).data})   
+            async_to_sync(channel_layer.send)(session.channel_name, data)
+               
     def chat_message_recieve(self, event):
         self.send(json.dumps(event))
+    
+    def chat_message_see(self, event):
+        other_side_message_type = "chat.message.saw"
+        chat_id = event.get("id", None)
+        if(self.user is None):
+            self.send(json.dumps({"error" : get_error_serialized(AUTHENTICATION_REQUIRED).data}))
+            return 
+        if(chat_id is None):
+            self.send(json.dumps({"error" : get_error_serialized(MISSING_REQUIRED_FIELDS).data}))
+            return
+        chat = DirectChatMessage.objects.filter(id=chat_id).first()
+        if(chat is None):
+            self.send(json.dumps({"error" : get_error_serialized(OBJECT_NOT_FOUND, detail="chat not found.").data}))
+            return
+        if(chat._to != self.user):
+            self.send(json.dumps({"error" : get_error_serialized(PERMISSION_DENIED).data}))
+            return
+        chat.seen = True
+        chat.save()
+        other_side = chat._from
+        other_side_sessions = Clients.objects.filter(username=other_side)
+        data = {"type" : other_side_message_type, "id" : chat_id}
+        for session in other_side_sessions:
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.send)(session.channel_name, data)           
+    
+    def chat_message_saw(self, event):
+        self.send(json.dumps(event))
+    
     def chat_message_get(self, event):
         if(self.user is None):
             self.send(json.dumps({"error" : get_error_serialized(AUTHENTICATION_REQUIRED).data}))
@@ -125,5 +156,28 @@ class ChatConsumer(WebsocketConsumer):
         for chat in chats:
             result.append(DirectChatViewSerializer(chat, context={"target_username" : self.user.username}).data)
         self.send(json.dumps({"type" : "chat.message.get", "data" : json.dumps(result)}))    
-        
-        
+
+    def chat_control(self, event):
+        _from = event.get("from", None)
+        _to = event.get("to", None)
+        data = event.get("data", None)
+        if(self.user is None):
+            self.send(json.dumps({"error" : get_error_serialized(AUTHENTICATION_REQUIRED).data}))
+            return  
+        if(_to is None and _from is None) or ((_to is not None and _from is not None) or data is None):
+            self.send(json.dumps({"error" : get_error_serialized(MISSING_REQUIRED_FIELDS).data}))
+            return
+        User = get_user_model()
+        if(_to is not None):
+            user_to = User.objects.filter(username=_to).first()
+            if(user_to is None):
+                self.send(json.dumps({"error" : get_error_serialized(OBJECT_NOT_FOUND, detail="user not found.").data}))
+                return
+            active_sessions = Clients.objects.filter(username=user_to)
+            for session in active_sessions:
+                send_data = {"type" : "chat.control", "from": self.user.username, "data": data}
+                channel_layer = get_channel_layer()
+                async_to_sync(channel_layer.send)(session.channel_name, send_data)
+        #recieved control message from other users so send it to client
+        elif(_from is not None):
+            self.send(json.dumps(event))
