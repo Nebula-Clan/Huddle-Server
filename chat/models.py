@@ -1,5 +1,6 @@
 from django.db import models
 from authentication.models import User
+from huddle.utils import random_string
 # Create your models here.
 
 class DirectChatMessage(models.Model):
@@ -17,4 +18,12 @@ class LastSeen(models.Model):
 class Clients(models.Model):
     channel_name = models.TextField(max_length=1000)
     username = models.ForeignKey(User, on_delete=models.CASCADE)
-    
+
+
+def get_chat_dir(instance, filename):
+    return f'uploads/chats/{instance.chat._from}/{instance.chat._to}/{random_string(50)}_{filename}'
+
+class ChatFiles(models.Model):
+    is_image = models.BooleanField()
+    chat = models.ForeignKey(DirectChatMessage, on_delete=models.CASCADE)
+    file = models.FileField(upload_to=get_chat_dir)
