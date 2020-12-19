@@ -18,7 +18,7 @@ class ChatConsumer(WebsocketConsumer):
         self.accept()
 
     def disconnect(self, close_code):
-        if(self.user is not None):
+        if(self.user is not None and not self.user.is_anonymous):
             Clients.objects.filter(username=self.user.id, channel_name=self.channel_name).delete()
             last_seen_data = LastSeen.objects.filter(user=self.user).first()
             if(last_seen_data is None):
