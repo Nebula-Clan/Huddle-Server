@@ -8,6 +8,8 @@ from hashtag.models import Hashtag, PostHashtag
 from hashtag.serializers import HashtagSerializer
 from category.models import Category
 from category.serializers import CategorySerializer
+from report.models import Reports
+from huddle.settings import POST_MAXIMUM_REPORT
 
 class PostSerializer(serializers.ModelSerializer):
     is_liked = serializers.SerializerMethodField()
@@ -17,6 +19,7 @@ class PostSerializer(serializers.ModelSerializer):
     hashtags = serializers.SerializerMethodField()
     category = serializers.SerializerMethodField()
     header_image = serializers.SerializerMethodField()
+    is_reported = serializers.SerializerMethodField()
 
     def get_hashtags(self, instance):
         records = PostHashtag.objects.filter(post=instance.id)
@@ -57,10 +60,16 @@ class PostSerializer(serializers.ModelSerializer):
             return None
         return str(instance.header_image)
 
+    def get_is_reported(self, instance):
+        reports_number = Reports.objects.filter(post = instance.id).count()
+        if reports_number >= POST_MAXIMUM_REPORT:
+            return True
+        return False
+    
     class Meta:
         model = Post
         fields = ['id', 'title', 'description', 'header_image', 'post_content',
-                    'category', 'date_created', 'author', 'is_liked', 'likes_number', 'hashtags']
+                    'category', 'date_created', 'author', 'is_liked', 'likes_number', 'hashtags', 'is_reported']
 
 class ContentSerializer(serializers.ModelSerializer):
     
