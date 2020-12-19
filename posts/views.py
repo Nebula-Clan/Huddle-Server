@@ -175,7 +175,6 @@ def get_user_posts(request):
     if not(offset_str is None):
         all_posts = all_posts[PCOUNT * offset: PCOUNT * (offset + 1)]
     
-    print(all_posts)
     serialized_posts = PostSerializer(all_posts, many = True, context = {"author_depth" : False, 'content_depth' : False, 'viewer': viewer}).data
 
     serialized_author = PublicProfileSerializer(author).data

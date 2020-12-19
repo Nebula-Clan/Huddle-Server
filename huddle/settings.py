@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     'follow',
     'chat',
     'draft',
+    'report',
 ]
 
 MIDDLEWARE = [
@@ -190,3 +191,4 @@ REST_FRAMEWORK = {
 
 HASHTAG_MAXIMUM_LENGTH = 25
 PCOUNT = 10 # How many posts return for a page of posts
+POST_MAXIMUM_REPORT = 100
