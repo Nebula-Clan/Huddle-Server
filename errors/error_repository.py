@@ -23,7 +23,8 @@ errors_list = [
     (111, 'This user dont follow requested user'),
     (112, 'This user already follow requested user'),
     (113, 'Authenticatio failed!'),
-    (114, 'Should authorize first.')
+    (114, 'Should authorize first.'),
+    (115, 'This user has previously reported the post')
 ]
 
 def get_error(code):
