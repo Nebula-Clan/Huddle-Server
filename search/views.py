@@ -10,6 +10,8 @@ from http import HTTPStatus
 from errors.error_repository import get_error_serialized
 from category.methods import * 
 from community.models import Community
+from user_profile.serializers import PublicProfileSerializer
+from django.db.models import Q
 # Create your views here.
 
 @api_view(['GET'])
@@ -17,28 +19,26 @@ def search_in_users(request):
 
     serach_key = request.query_params.get('key', None)
     if(serach_key is None):
-        return JsonResponse({'message': 'Bad request!'}, status=HTTPStatus.BAD_REQUEST)
-    data_usernames = list(User.objects.values_list('username', flat = True))
-    finded_usernames = list(set(search(serach_key, data_usernames)))
+        return JsonResponse({'error': get_error_serialized(103, 'key parameter is required')}, status = HTTPStatus.BAD_REQUEST)
     
-    data_firstnames = list(User.objects.values_list('first_name', flat = True))
-    finded_firstnames = list(set(search(serach_key, data_firstnames)))
+    data_usernames = []
+    data_firstnames = []
+    data_lastnames = []
+    for user in User.objects.all():
+        data_usernames.append((user.username, user.id))
+        data_firstnames.append((user.first_name, user.id))
+        data_lastnames.append((user.last_name, user.id))
     
-    data_lastnames = list(User.objects.values_list('last_name', flat = True))
-    finded_lastnames = list(set(search(serach_key, data_lastnames)))
-
     all_users_finded = []
-
-    for username in finded_usernames:
-        all_users_finded.append(UserSerializer(User.objects.get(username = username)).data)
-    for firstname in finded_firstnames:
-        for item in User.objects.filter(first_name = firstname):
-            all_users_finded.append(UserSerializer(item).data)
-    for lastname in finded_lastnames:
-        for item in User.objects.filter(last_name = lastname):
-            all_users_finded.append(UserSerializer(item).data)
+    all_users_finded.extend(list(set(search(serach_key, data_usernames))))
     
-    return JsonResponse({"users_finded" : all_users_finded})
+    all_users_finded.extend(list(set(search(serach_key, data_firstnames))))
+    
+    all_users_finded.extend(list(set(search(serach_key, data_lastnames))))
+
+    all_users_finded_ = User.objects.filter(Q(id__in = all_users_finded))
+
+    return JsonResponse({"users_finded" : PublicProfileSerializer(all_users_finded_, many = True).data})
 
 @api_view(['GET'])
 def search_in_posts(request):
