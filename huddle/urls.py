@@ -28,6 +28,7 @@ import follow.urls as follow_urls
 import draft.urls as draft_urls
 import chat.urls as chat_urls
 import report.urls as report_urls
+import explorer.urls as explorer_urls
 from django.conf.urls import url
 from . import settings
 from django.conf.urls.static import static
@@ -47,6 +48,7 @@ urlpatterns = [
     url(r'^api/draft/', include(draft_urls)),
     url(r'^api/chat/', include(chat_urls)),
     url(r'^api/report/', include(report_urls)),
+    url(r'^api/explorer/', include(explorer_urls)),
 ]
 remove_all_clients()
 if(settings.DEBUG):

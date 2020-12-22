@@ -62,6 +62,7 @@ INSTALLED_APPS = [
     'chat',
     'draft',
     'report',
+    'explorer'
 ]
 
 MIDDLEWARE = [
