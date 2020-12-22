@@ -7,9 +7,10 @@ from likes.models import PostLike
 
 def related_community(user):
 
-    communities = user.in_community()
+    communities = user.in_community.all()
+    com_posts = []
     for community in communities:
-        com_posts = Post.objects.filter(community = community.id)
+        com_posts.extend(Post.objects.filter(community = community.id))
 
     hashtags = []
     for post in com_posts:
@@ -17,9 +18,9 @@ def related_community(user):
 
     hashtags_set = set(hashtags)
 
-    posts_found =[]
+    posts_found = []
     for hashtag in hashtags_set:
-        posts_found.extend(PostHashtag.objects.filter(hashtag = hashtag).values_list('post'))
+        posts_found.extend([post.id for post in PostHashtag.objects.filter(hashtag = hashtag).values_list('post')])
     
     return posts_found
 
@@ -31,14 +32,13 @@ def related_followings(user):
     for following in followings:
         followings_2 = UserFollowing.objects.filter(user = following).values_list('following_user')
         for following_2 in followings_2:
-            posts.extend(Post.objects.filter(author = following_2))
+            posts.extend([post.id for post in Post.objects.filter(author = following_2)])
     
     return posts
     
 def related_likes(user):
     
     posts_liked = PostLike.objects.filter(user = user.id).values_list('post')
-    return posts_liked
     
     hashtags = []
     for post in posts_liked:
@@ -48,6 +48,6 @@ def related_likes(user):
 
     posts_found = []
     for hashtag in hashtags_set:
-        posts_found.extend(PostHashtag.objects.filter(hashtag = hashtag))
+        posts_found.extend([post.id for post in PostHashtag.objects.filter(hashtag = hashtag)])
     
     return posts_found
