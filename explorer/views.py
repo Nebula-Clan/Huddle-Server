@@ -6,6 +6,9 @@ from django.http.response import JsonResponse
 from .generate_posts import *
 from django.db.models import Q
 from category.methods import categoryname_mapper, categoryid_mapper
+from errors.error_repository import get_error_serialized
+from rest_framework import status
+from hashtag.models import Hashtag, PostHashtag
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -30,5 +33,24 @@ def get_posts(request):
     else:
         posts = Post.objects.filter(Q(pk__in = posts_id))
         
-    return JsonResponse({"posts":PostSerializer(posts, many = True).data})
+    return JsonResponse({"posts":PostSerializer(posts, many = True, context = {"content_depth" : False}).data})
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def posts_by_hashtag(request):
+    user = request.user
+
+    hashtag_text = request.query_params.get('hashtag', None)
+    if hashtag_text == "": hashtag_text = None
+    
+    if hashtag_text is None:
+        return JsonResponse({"error" : get_error_serialized(103, 'hashtag field is required').data}, status = status.HTTP_400_BAD_REQUEST)
+
+    hashtag = Hashtag.objects.filter(text = hashtag_text).first()
+
+    if hashtag is None:
+        return JsonResponse({"error" : get_error_serialized(100, 'Hashtag not found').data}, status = status.HTTP_404_NOT_FOUND)
+    
+    posts_found_id = PostHashtag.objects.filter(hashtag = hashtag).values_list('post', flat = True)
+    posts_found = Post.objects.filter(Q(pk__in = posts_found_id))
+    return JsonResponse({"posts" : PostSerializer(posts_found, many = True, context = {"content_depth" : False}).data})
