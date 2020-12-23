@@ -10,6 +10,7 @@ from chat.models import Clients, DirectChatMessage, LastSeen
 from chat.serializers import ChatUsersSerializer, DirectChatViewSerializer
 from django.contrib.auth import get_user_model
 import huddle.utils as utils
+from user_profile.serializers import PublicProfileSerializer
 class ChatConsumer(WebsocketConsumer):
     def connect(self):
         self.room_name = self.scope['url_route']['kwargs']['room_name']
@@ -120,7 +121,7 @@ class ChatConsumer(WebsocketConsumer):
         chat.save()
         other_side = chat._from
         other_side_sessions = Clients.objects.filter(username=other_side)
-        data = {"type" : other_side_message_type, "id" : chat_id}
+        data = {"type" : other_side_message_type, "id" : chat_id, 'user' : PublicProfileSerializer(self.user).data}
         for session in other_side_sessions:
             channel_layer = get_channel_layer()
             async_to_sync(channel_layer.send)(session.channel_name, data)           
@@ -181,3 +182,15 @@ class ChatConsumer(WebsocketConsumer):
         #recieved control message from other users so send it to client
         elif(_from is not None):
             self.send(json.dumps(event))
+    def chat_user_profile(self, event):
+        username = event.get("username", None)
+        if(username is None):
+            self.send(json.dumps({"error" : get_error_serialized(MISSING_REQUIRED_FIELDS).data}))
+            return
+        User = get_user_model()
+        user = User.objects.filter(username=username).first()
+        if user is None:
+            self.send(json.dumps({"error" : get_error_serialized(OBJECT_NOT_FOUND, detail="user not found.").data}))
+            return 
+        self.send(json.dumps({"user" : PublicProfileSerializer(user).data}))
+        return
