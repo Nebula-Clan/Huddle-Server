@@ -22,7 +22,7 @@ class DirectChatViewSerializer(serializers.ModelSerializer):
         return self.instance._from.username == sender_username
     class Meta:
         model = DirectChatMessage
-        fields = ['id', 'text', 'date', 'uuid', 'seen', 'is_sender']
+        fields = ['id', 'text', 'date', 'uuid', 'seen', 'is_sender', 'file_type']
 
 class LastSeenSerializer(serializers.ModelSerializer):
     class Meta:
