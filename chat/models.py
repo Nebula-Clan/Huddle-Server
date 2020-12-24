@@ -1,6 +1,7 @@
 from django.db import models
 from authentication.models import User
 from huddle.utils import random_string
+import uuid
 # Create your models here.
 
 class DirectChatMessage(models.Model):
@@ -10,6 +11,7 @@ class DirectChatMessage(models.Model):
     _to = models.ForeignKey(User, on_delete=models.CASCADE, related_name="+")
     seen = models.BooleanField(default=False)
     date = models.DateTimeField(auto_now_add=True)
+    uuid = models.UUIDField(unique=True, default=uuid.uuid4)
     
 class LastSeen(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)

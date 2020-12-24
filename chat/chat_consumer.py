@@ -156,7 +156,7 @@ class ChatConsumer(WebsocketConsumer):
             chats = []
         for chat in chats:
             result.append(DirectChatViewSerializer(chat, context={"target_username" : self.user.username}).data)
-        self.send(json.dumps({"type" : "chat.message.get", "data" : json.dumps(result)}))    
+        self.send(json.dumps({"type" : "chat.message.get", "_user" : PublicProfileSerializer(other_user).data, "data" : json.dumps(result)}))    
 
     def chat_control(self, event):
         _from = event.get("from", None)
@@ -192,5 +192,5 @@ class ChatConsumer(WebsocketConsumer):
         if user is None:
             self.send(json.dumps({"error" : get_error_serialized(OBJECT_NOT_FOUND, detail="user not found.").data}))
             return 
-        self.send(json.dumps({"user" : PublicProfileSerializer(user).data}))
+        self.send(json.dumps({ "type" : "chat.user.profile", "user" : PublicProfileSerializer(user).data}))
         return
