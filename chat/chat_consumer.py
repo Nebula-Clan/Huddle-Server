@@ -93,6 +93,7 @@ class ChatConsumer(WebsocketConsumer):
         channel_layer = get_channel_layer()
         data = {
                     "type" : "chat.message.recieve", 
+                    "_from" : PublicProfileSerializer(other_user).data,
                     "message" : DirectChatViewSerializer(instance=chat, context={"target_username" : user_to.username}).data
                }
         for session in other_user_active_sessions:
