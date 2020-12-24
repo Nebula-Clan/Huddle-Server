@@ -15,12 +15,6 @@ class ChatFileSerializer(serializers.ModelSerializer):
         fields = ['file', 'is_image']
 class DirectChatViewSerializer(serializers.ModelSerializer):
     is_sender = serializers.SerializerMethodField()
-    # _from = serializers.SerializerMethodField(method_name="get_from")
-    # _to = serializers.SerializerMethodField(method_name="get_to")
-    # def get_from(self, instance):
-    #     return PublicProfileSerializer(instance=instance._from).data
-    # def get_to(self, instance):
-    #     return PublicProfileSerializer(instance=instance._to).data
     def get_is_sender(self, instance):
         sender_username = self.context.get("target_username", None)
         if(sender_username is None):
