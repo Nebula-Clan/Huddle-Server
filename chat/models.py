@@ -12,6 +12,7 @@ class DirectChatMessage(models.Model):
     seen = models.BooleanField(default=False)
     date = models.DateTimeField(auto_now_add=True)
     uuid = models.UUIDField(unique=True, default=uuid.uuid4)
+    file_type = models.IntegerField(default=0)
     
 class LastSeen(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)

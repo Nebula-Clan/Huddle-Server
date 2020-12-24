@@ -11,6 +11,7 @@ from chat.serializers import ChatUsersSerializer, DirectChatViewSerializer
 from django.contrib.auth import get_user_model
 import huddle.utils as utils
 from user_profile.serializers import PublicProfileSerializer
+from uuid import UUID
 class ChatConsumer(WebsocketConsumer):
     def connect(self):
         self.room_name = self.scope['url_route']['kwargs']['room_name']
@@ -80,15 +81,27 @@ class ChatConsumer(WebsocketConsumer):
             return
         to_username = event.get('to', None)
         text = event.get('text', None)
+        uuid_ = event.get('uuid', None)
+        file_type = event.get('file_type', None)
+        file_type = utils.int_try_parse(file_type, 0)
         if (to_username is None or text is None):
             self.send(json.dumps({"error" : get_error_serialized(MISSING_REQUIRED_FIELDS).data}))
             return
         Users = get_user_model()
         user_to = Users.objects.filter(username=to_username).first()
         if(user_to is None):
-            self.send(json.dumps({"error" : get_error_serialized(MISSING_REQUIRED_FIELDS, detail="User to send message not found!").data}))
+            self.send(json.dumps({"error" : get_error_serialized(OBJECT_NOT_FOUND, detail="User to send message not found!").data}))
             return
-        chat = DirectChatMessage.objects.create(_to=user_to, text=text, _from=self.user, seen=False)
+        chat = DirectChatMessage.objects.create(_to=user_to, text=text, _from=self.user, seen=False, file_type=file_type)
+        if(uuid_ is not None):
+            try:
+                chat.uuid = UUID(uuid_)
+            except ValueError:
+                self.send(json.dumps({"error" : get_error_serialized(MISSING_REQUIRED_FIELDS, detail="Invalid UUID.").data}))
+                chat.delete()
+                return
+            if(chat.is_valid()):
+                chat.save()
         other_user_active_sessions = Clients.objects.filter(username=user_to)
         channel_layer = get_channel_layer()
         data = {
