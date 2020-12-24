@@ -20,7 +20,7 @@ def upload(request):
     file = request.FILES.get("data", None)
     user_to = request.data.get("username", None)
     file_type = request.data.get("file_type", False)
-    uuid_ =  request.data.get("uuid", "None")
+    uuid_ =  request.data.get("uuid", None)
     file_type = int_try_parse(file_type, 1)
     
     if(file is None or user_to is None):
@@ -33,11 +33,13 @@ def upload(request):
                             data={ "error" : get_error_serialized(OBJECT_NOT_FOUND, detail="user not found").data}, 
                             status=HTTPStatus.NOT_FOUND)
     chat = DirectChatMessage.objects.create(_to=user_to, text="", _from=request.user, seen=False, file_type=file_type)
-    try:
-        uuid_ = uuid.UUID(uuid_)
-        chat.uuid= uuid_
-    except ValueError:
-        pass
+    if(uuid is not None):
+        try:
+            uuid_ = uuid.UUID(uuid_)
+            chat.uuid= uuid_
+        except ValueError:
+            chat.delete()
+            return JsonResponse(data={"error" : get_error_serialized(MISSING_REQUIRED_FIELDS, detail="Invalid UUID").data}, status=HTTPStatus.BAD_REQUEST)
     file = ChatFiles.objects.create(chat=chat, is_image=False, file=file)
     chat.text = str(file.file)
     chat.save()
