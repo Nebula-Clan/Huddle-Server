@@ -100,8 +100,7 @@ class ChatConsumer(WebsocketConsumer):
                 self.send(json.dumps({"error" : get_error_serialized(MISSING_REQUIRED_FIELDS, detail="Invalid UUID.").data}))
                 chat.delete()
                 return
-            if(chat.is_valid()):
-                chat.save()
+            chat.save()
         other_user_active_sessions = Clients.objects.filter(username=user_to)
         channel_layer = get_channel_layer()
         data = {
