@@ -135,7 +135,7 @@ class ChatConsumer(WebsocketConsumer):
         chat.save()
         other_side = chat._from
         other_side_sessions = Clients.objects.filter(username=other_side)
-        data = {"type" : other_side_message_type, "id" : chat_id, 'user' : PublicProfileSerializer(self.user).data, 'uuid' : chat.uuid}
+        data = {"type" : other_side_message_type, "id" : chat_id, 'user' : PublicProfileSerializer(self.user).data, 'uuid' : str(chat.uuid)}
         for session in other_side_sessions:
             channel_layer = get_channel_layer()
             async_to_sync(channel_layer.send)(session.channel_name, data)           
