@@ -33,7 +33,7 @@ def upload(request):
                             data={ "error" : get_error_serialized(OBJECT_NOT_FOUND, detail="user not found").data}, 
                             status=HTTPStatus.NOT_FOUND)
     chat = DirectChatMessage.objects.create(_to=user_to, text="", _from=request.user, seen=False, file_type=file_type)
-    if(uuid is not None):
+    if(uuid_ is not None):
         try:
             uuid_ = uuid.UUID(uuid_)
             chat.uuid= uuid_
@@ -52,4 +52,4 @@ def upload(request):
             }
     for session in other_user_active_sessions:
             async_to_sync(channel_layer.send)(session.channel_name, data)
-    return JsonResponse(data={'message' : "message sent successfully"}, status=HTTPStatus.CREATED)
+    return JsonResponse(data={'message' : "message sent successfully", "url" : chat.text}, status=HTTPStatus.CREATED)
