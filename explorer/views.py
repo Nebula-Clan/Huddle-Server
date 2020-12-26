@@ -27,11 +27,13 @@ def get_posts(request):
     posts_id.extend(related_community(user))
     posts_id.extend(related_likes(user))
     posts_id.extend(related_followings(user))
-    print(posts_id)
+    
+    posts_id_set = set(posts_id)
+
     if not(category_filter is None):
-        posts = Post.objects.filter(Q(pk__in = posts_id), category = category_filter)
+        posts = Post.objects.exclude(Q(header_image__isnull = True) | Q(header_image = "")).filter(Q(pk__in = posts_id_set), category = category_filter)
     else:
-        posts = Post.objects.filter(Q(pk__in = posts_id))
+        posts = Post.objects.exclude(Q(header_image__isnull = True) | Q(header_image = "")).filter(Q(pk__in = posts_id_set))
         
     return JsonResponse({"posts":PostSerializer(posts, many = True, context = {"content_depth" : False}).data})
 

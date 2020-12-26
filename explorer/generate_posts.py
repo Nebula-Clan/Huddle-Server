@@ -11,26 +11,26 @@ def related_community(user):
     com_posts = []
     for community in communities:
         com_posts.extend(Post.objects.filter(community = community.id))
-
+    
     hashtags = []
     for post in com_posts:
-        hashtags.extend(PostHashtag.objects.filter(post = post.id).values_list('hashtag'))
-
+        hashtags.extend(PostHashtag.objects.filter(post = post.id).values_list('hashtag', flat = True))
+    
     hashtags_set = set(hashtags)
 
     posts_found = []
     for hashtag in hashtags_set:
-        posts_found.extend([post.id for post in PostHashtag.objects.filter(hashtag = hashtag).values_list('post')])
+        posts_found.extend([post_id for post_id in PostHashtag.objects.filter(hashtag = hashtag).values_list('post', flat = True)])
     
     return posts_found
 
 def related_followings(user):
     
-    followings = UserFollowing.objects.filter(user = user).values_list('following_user')
+    followings = UserFollowing.objects.filter(user = user).values_list('following_user', flat = True)
 
     posts = []
     for following in followings:
-        followings_2 = UserFollowing.objects.filter(user = following).values_list('following_user')
+        followings_2 = UserFollowing.objects.filter(user = following).values_list('following_user', flat = True)
         for following_2 in followings_2:
             posts.extend([post.id for post in Post.objects.filter(author = following_2)])
     
@@ -38,16 +38,16 @@ def related_followings(user):
     
 def related_likes(user):
     
-    posts_liked = PostLike.objects.filter(user = user.id).values_list('post')
+    posts_liked = PostLike.objects.filter(user = user.id).values_list('post', flat = True)
     
     hashtags = []
     for post in posts_liked:
-        hashtags.extend(PostHashtag.objects.filter(post = post))
+        hashtags.extend(PostHashtag.objects.filter(post = post).values_list('hashtag', flat = True))
     
     hashtags_set = set(hashtags)
 
     posts_found = []
     for hashtag in hashtags_set:
-        posts_found.extend([post.id for post in PostHashtag.objects.filter(hashtag = hashtag)])
+        posts_found.extend([post_id for post_id in PostHashtag.objects.filter(hashtag = hashtag).values_list('post', flat = True)])
     
     return posts_found
