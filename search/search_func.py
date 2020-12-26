@@ -48,7 +48,7 @@ def search(inp, data):
             if word in exp_clean:
                 finded.append(exp[1])
                 continue
-            if len(word) < 4:
+            if len(word) < 5:
                 continue
             search_tokens = generate_search_token(word)
             for search_token in search_tokens:
