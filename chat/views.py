@@ -52,4 +52,4 @@ def upload(request):
             }
     for session in other_user_active_sessions:
             async_to_sync(channel_layer.send)(session.channel_name, data)
-    return JsonResponse(data={'message' : "message sent successfully", "url" : chat.text}, status=HTTPStatus.CREATED)
+    return JsonResponse(data={'message' : "message sent successfully", "url" : "media/"+chat.text}, status=HTTPStatus.CREATED)
