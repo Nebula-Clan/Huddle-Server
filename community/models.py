@@ -19,3 +19,4 @@ class Community(models.Model):
     date_created = models.DateTimeField(auto_now = True)
     picture = models.ImageField(upload_to = get_community_pics_directory)
     banner_picture = models.ImageField(upload_to = get_community_bannerpics_directory)
+    disabeled_users = models.ManyToManyField(User, related_name = 'disabeled_users')
