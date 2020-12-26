@@ -11,6 +11,7 @@ from errors.error_repository import get_error_serialized
 from category.methods import * 
 from community.models import Community
 from user_profile.serializers import PublicProfileSerializer
+from hashtag.models import *
 from django.db.models import Q
 # Create your views here.
 
@@ -48,9 +49,11 @@ def search_in_posts(request):
     if category_filter == "": category_filter = None
     community_filter = request.query_params.get('community_filter', None)
     if community_filter == "": community_filter = None
+    hashtag_filter = request.query_params.get('hashtag_filter', None)
+    if hashtag_filter == "": hashtag_filter = None
 
-    if serach_key == "" and category_filter is None and community_filter is None:
-        return JsonResponse({'error': get_error_serialized(103, '\'key\' or \'category_filter\' \'community_filter\' parameter is required').data}, status = HTTPStatus.BAD_REQUEST)
+    if serach_key == "" and category_filter is None and community_filter is None and hashtag_filter is None:
+        return JsonResponse({'error': get_error_serialized(103, '\'key\' or \'category_filter\' or \'hashtag_filter\' or \'community_filter\' parameter is required').data}, status = HTTPStatus.BAD_REQUEST)
     
     if not(community_filter is None):
         community = Community.objects.filter(name__iexact = community_filter.lower()).first()
@@ -59,7 +62,11 @@ def search_in_posts(request):
     if not(category_filter is None) and len(category_filter) > 2:
         cf_mapped = categoryname_mapper(category_filter)
         if cf_mapped is not None: category_filter = cf_mapped
-    
+    if not(hashtag_filter is None):
+        hashtag_filter_id = 0
+        hashtag_filter_ = Hashtag.objects.filter(text = hashtag_filter).first()
+        if not(hashtag_filter_ is None): hashtag_filter_id = hashtag_filter_.id
+
     data = []
 
     if not(category_filter is None):
@@ -79,6 +86,9 @@ def search_in_posts(request):
 
     finded_ids = list(set(search(serach_key, data)))
     
+    if not(hashtag_filter is None):
+        finded_ids = PostHashtag.objects.filter(Q(post__in = finded_ids) & Q(hashtag = hashtag_filter_id)).values_list('post', flat = True)
+
     all_posts_finded = []
 
     for p_id in finded_ids:
