@@ -36,6 +36,8 @@ def get_similar_to(request):
     if(string is None):
         return JsonResponse(ErrorSerializer(get_error(103)).data, status=HTTPStatus.BAD_REQUEST)
     hashtags = Hashtag.objects.all()
+    if string == "":
+        return JsonResponse({'hashtags' : HashtagSerializer(hashtags, many = True).data}, status = HTTPStatus.OK)
     edit_distances = {}
     for hashtag in hashtags:
         edit_distances[hashtag] = edit_distance(string, hashtag.text, len(string), len(hashtag.text))
