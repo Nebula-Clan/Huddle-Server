@@ -8,11 +8,14 @@ from posts.serializer import PostSerializer
 from django.http.response import JsonResponse
 from http import HTTPStatus
 from errors.error_repository import get_error_serialized
-from category.methods import * 
-from community.models import Community
 from user_profile.serializers import PublicProfileSerializer
 from hashtag.models import *
 from django.db.models import Q
+from category.methods import *
+from category.models import categories, Category
+from category.serializers import CategorySerializer
+from community.models import Community
+from community.serializer import CommunitySmallSerializer
 # Create your views here.
 
 @api_view(['GET'])
@@ -96,3 +99,33 @@ def search_in_posts(request):
             all_posts_finded.append(PostSerializer(item, context = {"content_depth" : False}).data)
 
     return JsonResponse({"posts_finded" : all_posts_finded})
+
+@api_view(['GET'])
+def search_in_categories(request):
+    category_text = request.query_params.get('key', None)
+    if category_text == "": category_text = None
+
+    if category_text is None:
+        return JsonResponse({"error" : get_error_serialized(103, 'key parameter is required')}, status = HTTPStatus.BAD_REQUEST)
+    
+    data = [(cat[1], cat[0]) for cat in categories]
+    finded_ids = search(category_text, data)
+    finded_categories = Category.objects.filter(Q(name__in = finded_ids))
+
+    return JsonResponse({"categories" : CategorySerializer(finded_categories, many = True).data})
+
+    
+@api_view(['GET'])
+def search_in_communities(request):
+    name = request.query_params.get('key', None)
+    if name == "": name = None
+
+    if name is None:
+        return JsonResponse({"error" : get_error_serialized(103, 'key parameter is required').data}, status = HTTPStatus.BAD_REQUEST)
+    
+    data = [(community.name, community.id) for community in Community.objects.all()]
+    finded_ids = search(name, data)
+
+    finded_coms = Community.objects.filter(Q(id__in = finded_ids))
+
+    return JsonResponse({"communities" : CommunitySmallSerializer(finded_coms, many = True).data})
