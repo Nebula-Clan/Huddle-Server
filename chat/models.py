@@ -24,7 +24,7 @@ class Clients(models.Model):
 
 
 def get_chat_dir(instance, filename):
-    return f'uploads/chats/{instance.chat._from}/{instance.chat._to}/{random_string(50)}_{filename}'
+    return f'uploads/chats/{instance.chat._from}/{instance.chat._to}/{random_string(50)}_Huddle_{filename}'
 
 class ChatFiles(models.Model):
     is_image = models.BooleanField()
