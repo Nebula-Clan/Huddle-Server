@@ -31,9 +31,9 @@ def get_posts(request):
     posts_id_set = set(posts_id)
 
     if not(category_filter is None):
-        posts = Post.objects.exclude(Q(title = "") | Q(header_image__isnull = True) | Q(header_image = "") | Q(header_image__icontains = "undefined") | Q(header_image__icontains = "null")).filter(Q(pk__in = posts_id_set), category = category_filter)
+        posts = Post.objects.exclude(Q(title__isnull = True) | Q(title = "") | Q(header_image__isnull = True) | Q(header_image = "") | Q(header_image__icontains = "undefined") | Q(header_image__icontains = "null")).filter(Q(pk__in = posts_id_set), category = category_filter)
     else:
-        posts = Post.objects.exclude(Q(title = "") | Q(header_image__isnull = True) | Q(header_image = "") | Q(header_image__icontains = "undefined") | Q(header_image__icontains = "null")).filter(Q(pk__in = posts_id_set))
+        posts = Post.objects.exclude(Q(title__isnull = True) | Q(title = "") | Q(header_image__isnull = True) | Q(header_image = "") | Q(header_image__icontains = "undefined") | Q(header_image__icontains = "null")).filter(Q(pk__in = posts_id_set))
         
     return JsonResponse({"posts":PostSerializer(posts, many = True, context = {"content_depth" : False}).data})
 
