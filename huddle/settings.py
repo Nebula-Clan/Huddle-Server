@@ -31,7 +31,7 @@ SECRET_KEY = 'wzpzt#6fe#14y10gug78a5lftfl(mmo*vfa74b5nt*ite=i3uj'
 DEBUG = True
 
 ALLOWED_HOSTS = []
-# ALLOWED_HOSTS = ['188.40.212.205']
+# ALLOWED_HOSTS = ['172.245.10.238']
 CORS_ALLOWED_ORIGINS = [
      "http://localhost:3000",
 ]
