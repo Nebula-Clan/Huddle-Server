@@ -256,11 +256,10 @@ def home_posts(request):
     followings = [user.following_user for user in UserFollowing.objects.filter(user = user)]
 
     posts = []
-    for community_id in communities:
-        if (category_filter is None) or (category_filter == ''):
-            posts = Post.objects.filter(Q(community_id__in = communities) | Q(author = user) | Q(author__in = followings))
-        else:
-            posts = Post.objects.filter(Q(category = category_filter) & (Q(community_id__in = communities) | Q(author = user) | Q(author_id__in = followings)))
+    if (category_filter is None) or (category_filter == ''):
+        posts = Post.objects.filter(Q(community_id__in = communities) | Q(author = user) | Q(author__in = followings))
+    else:
+        posts = Post.objects.filter(Q(category = category_filter) & (Q(community_id__in = communities) | Q(author = user) | Q(author_id__in = followings)))
     posts = list(set(posts))
 
     ordered_posts = order_posts(posts, order_key)
