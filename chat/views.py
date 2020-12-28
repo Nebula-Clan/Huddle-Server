@@ -41,7 +41,7 @@ def upload(request):
             chat.delete()
             return JsonResponse(data={"error" : get_error_serialized(MISSING_REQUIRED_FIELDS, detail="Invalid UUID").data}, status=HTTPStatus.BAD_REQUEST)
     file = ChatFiles.objects.create(chat=chat, is_image=False, file=file)
-    chat.text = str(file.file)
+    chat.text = "media/" + str(file.file)
     chat.save()
     other_user_active_sessions = Clients.objects.filter(username=user_to)
     channel_layer = get_channel_layer()
@@ -52,4 +52,4 @@ def upload(request):
             }
     for session in other_user_active_sessions:
             async_to_sync(channel_layer.send)(session.channel_name, data)
-    return JsonResponse(data={'message' : "message sent successfully", "url" : "media/"+chat.text}, status=HTTPStatus.CREATED)
+    return JsonResponse(data={'message' : "message sent successfully", "url" : chat.text}, status=HTTPStatus.CREATED)
