@@ -1,10 +1,14 @@
 from .models import error
 from .serializers import ErrorSerializer
+
+
 AUTHENTICATION_FAILED = 113
 AUTHENTICATION_REQUIRED = 114
 PERMISSION_DENIED = 106
 OBJECT_NOT_FOUND = 100
 MISSING_REQUIRED_FIELDS = 103
+
+
 errors_list = [
     (100, 'Object you are looking for does not exist in database'),
     (101, 'Wrong username or password'),
@@ -16,8 +20,11 @@ errors_list = [
     (108, 'Order key parameter only can be \'top\', \'hot\', \'new\''),
     (109, 'Community with this name already exists'),
     (110, 'Same like exists!'),
+    (111, 'This user dont follow requested user'),
+    (112, 'This user already follow requested user'),
     (113, 'Authenticatio failed!'),
-    (114, 'Should authorize first.')
+    (114, 'Should authorize first.'),
+    (115, 'This user has previously reported the post')
 ]
 
 def get_error(code):

@@ -20,19 +20,22 @@ from category.models import categories as categories_list
 from .home_post_helper import *
 from huddle.settings import PCOUNT
 from category.methods import *
+from draft.models import DraftPost
 # Create your views here.
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def create_post(request):
+def create_post(request, is_draft = False):
     author = request.user
     author_id = author.id
 
-    title = request.data.get('title')
-    content = request.data.get('content') # A base64 string for psot content
+    # is_draft = request.data.get('is_draft', False)
+
+    title = request.data.get('title', '')
+    content = request.data.get('content', '') # A base64 string for psot content
     category = request.data.get('category', None)
-    content_type = request.data.get('content_type') # AV: ArticleView, OI: OnlyImage, OT: OnlyText
-    description = request.data.get('description')
+    content_type = request.data.get('content_type', 'OT') # AV: ArticleView, OI: OnlyImage, OT: OnlyText
+    description = request.data.get('description', '')
     community_name = request.data.get('community_name')
     hashtags = request.data.get('hashtags')
     
@@ -59,8 +62,12 @@ def create_post(request):
     post_content = Content(content_type = content_type, content_text = content)
     post_content.save()
 
-    to_create_post = Post(title = title, description = description, post_content = post_content,
-                            category = post_category, community = community, author = author)
+    if is_draft:
+        to_create_post = DraftPost(title = title, description = description, post_content = post_content,
+                                category = post_category, community = community, author = author)
+    else:
+        to_create_post = Post(title = title, description = description, post_content = post_content,
+                                category = post_category, community = community, author = author)
     to_create_post.save()
 
     # adding image field after saving post in database because of image name is generated based on post_id
@@ -77,69 +84,64 @@ def create_post(request):
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
-def delete_post(request):
+def delete_post(request, is_draft = False):
     author = request.user
-    post_id = request.data.get('post_id')
-    if Post.objects.filter(id = post_id).exists():
-        if author.id == Post.objects.filter(id = post_id).first().author_id:
-            Post.objects.filter(id = post_id).first().delete()
-            return JsonResponse({"message" : f"Post with ID:{post_id} deleted successfuly"})
-        else:
-            return JsonResponse({"error" : ErrorSerializer(get_error(106)).data}, status = status.HTTP_403_FORBIDDEN)
+    post_id = request.query_params.get('id', None)
+    if post_id is None:
+        return JsonResponse({"error" : get_error_serialized(103, 'id field is required').data}, status = status.HTTP_400_BAD_REQUEST)
+    if is_draft:
+        post = DraftPost.objects.filter(id = post_id).first()
     else:
-        return JsonResponse({"error" : ErrorSerializer(get_error(100)).data}, status = status.HTTP_404_NOT_FOUND)
-
+        post = Post.objects.filter(id = post_id).first()
+    if post is None:
+        return JsonResponse({"error" : get_error_serialized(100, 'Post not found!').data}, status = status.HTTP_400_BAD_REQUEST)
+    if author.id == post.author_id:
+        post.delete()
+        return JsonResponse({"message" : f"Post with ID:{post_id} deleted successfuly"})
+    else:
+        return JsonResponse({"error" : ErrorSerializer(get_error(106)).data}, status = status.HTTP_403_FORBIDDEN)
+    
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
-def update_post(request):
-    post_id = request.data.get('post_id')
-    user = request.user
-    if not(Post.objects.filter(id = post_id).first().author_id == user.id):
-        return JsonResponse({"error" : ErrorSerializer(get_error(106)).data}, status = status.HTTP_403_FORBIDDEN)
+def update_post(request, is_draft = False):
+    post_id = request.data.get('id')
+    if is_draft:
+        post = DraftPost.objects.filter(id = post_id).first()
+    else:
+        post = Post.objects.filter(id = post_id).first()
 
-    fields_to_update = request.data.get('fields_update')
-    # 'title', 'description', 'content', 'category' are valid for field update
-
-    if len(fields_to_update) == 0:
-        return JsonResponse({"error" : ErrorSerializer(get_error(103)).data}, status = status.HTTP_400_BAD_REQUEST)
-
-    if 'title' in fields_to_update:
-        try:
-            new_title = request.data.get('title')
-        except:
-            return JsonResponse({"error" : ErrorSerializer(get_error(103)).data}, status = status.HTTP_400_BAD_REQUEST)
-        post_finded = Post.objects.filter(id = post_id).first()
-        post_finded.title = new_title
-        post_finded.save(update_fields = ['title'])
-
-    if 'description' in fields_to_update:
-        try:
-            new_description = request.data.get('description')
-        except:
-            return JsonResponse({"error" : ErrorSerializer(get_error(103)).data}, status = status.HTTP_400_BAD_REQUEST)
-        post_finded = Post.objects.filter(id = post_id).first()
-        post_finded.description = new_description
-        post_finded.save(update_fields = ['description'])
+    if post is None:
+        return JsonResponse({"error" : get_error_serialized(100, 'Post not found!').data}, status = status.HTTP_400_BAD_REQUEST)
     
-    if 'content' in fields_to_update:
-        try:
-            new_content = request.data.get('content')
-        except:
-            return JsonResponse({"error" : ErrorSerializer(get_error(103)).data}, status = status.HTTP_400_BAD_REQUEST)
-        content_id = Post.objects.filter(id = post_id).first().post_content_id
+    user = request.user
+    
+    if post.author_id != user.id:
+        return JsonResponse({"error" : ErrorSerializer(get_error(106)).data}, status = status.HTTP_403_FORBIDDEN)
+    
+    # 'title', 'description', 'content', 'header_image' are valid for field update
+    new_title = request.data.get('title', None)
+    new_des = request.data.get('description', None)
+    new_content = request.data.get('content', None)
+    new_image = request.data.get('header_image', None)
+    
+    if new_title is not None:
+        post.title = new_title
+        post.save(update_fields = ['title'])
+
+    if new_des is not None:
+        post.description = new_des
+        post.save(update_fields = ['description'])
+    
+    if new_content is not None:
+        content_id = post.post_content_id
         content_finded = Content.objects.filter(id = content_id).first()
         content_finded.content_text = new_content
         content_finded.save(update_fields = ['content_text'])
 
-    if 'category' in fields_to_update:
-        try:
-            new_category = request.data.get('category')
-        except:
-            return JsonResponse({"error" : ErrorSerializer(get_error(103)).data}, status = status.HTTP_400_BAD_REQUEST)
-        post_finded = Post.objects.filter(id = post_id).first()
-        post_finded.category = new_category
-        post_finded.save(update_fields = ['category'])
+    if new_image is not None:
+        post.header_image = new_image
+        post.save(update_fields = ['header_image'])
     
     return JsonResponse({"message" : "All fields updated successfuly"})
 
@@ -173,7 +175,6 @@ def get_user_posts(request):
     if not(offset_str is None):
         all_posts = all_posts[PCOUNT * offset: PCOUNT * (offset + 1)]
     
-    print(all_posts)
     serialized_posts = PostSerializer(all_posts, many = True, context = {"author_depth" : False, 'content_depth' : False, 'viewer': viewer}).data
 
     serialized_author = PublicProfileSerializer(author).data

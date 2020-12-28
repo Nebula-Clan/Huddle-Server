@@ -7,6 +7,9 @@ from user_profile.serializers import PublicProfileSerializer
 from hashtag.models import Hashtag, PostHashtag
 from hashtag.serializers import HashtagSerializer
 from category.models import Category
+from category.serializers import CategorySerializer
+from report.models import Reports
+from huddle.settings import POST_MAXIMUM_REPORT
 
 class PostSerializer(serializers.ModelSerializer):
     is_liked = serializers.SerializerMethodField()
@@ -15,6 +18,8 @@ class PostSerializer(serializers.ModelSerializer):
     likes_number = serializers.SerializerMethodField()
     hashtags = serializers.SerializerMethodField()
     category = serializers.SerializerMethodField()
+    header_image = serializers.SerializerMethodField()
+    is_reported = serializers.SerializerMethodField()
 
     def get_hashtags(self, instance):
         records = PostHashtag.objects.filter(post=instance.id)
@@ -48,12 +53,23 @@ class PostSerializer(serializers.ModelSerializer):
         if instance.category is None:
             return None
         category_id = instance.category_id
-        return Category.objects.filter(name = category_id).first().get_name_display()
+        return CategorySerializer(Category.objects.get(name = category_id)).data
+    
+    def get_header_image(self, instance):
+        if "undefined" in str(instance.header_image) or "null" in str(instance.header_image) or str(instance.header_image) == "":
+            return None
+        return str(instance.header_image)
 
+    def get_is_reported(self, instance):
+        reports_number = Reports.objects.filter(post = instance.id).count()
+        if reports_number >= POST_MAXIMUM_REPORT:
+            return True
+        return False
+    
     class Meta:
         model = Post
         fields = ['id', 'title', 'description', 'header_image', 'post_content',
-                    'category', 'date_created', 'author', 'is_liked', 'likes_number', 'hashtags']
+                    'category', 'date_created', 'author', 'is_liked', 'likes_number', 'hashtags', 'is_reported']
 
 class ContentSerializer(serializers.ModelSerializer):
     

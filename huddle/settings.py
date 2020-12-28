@@ -31,7 +31,7 @@ SECRET_KEY = 'wzpzt#6fe#14y10gug78a5lftfl(mmo*vfa74b5nt*ite=i3uj'
 DEBUG = True
 
 ALLOWED_HOSTS = []
-# ALLOWED_HOSTS = ['huddle.pythonanywhere.com']
+# ALLOWED_HOSTS = ['172.245.10.238']
 CORS_ALLOWED_ORIGINS = [
      "http://localhost:3000",
 ]
@@ -58,7 +58,11 @@ INSTALLED_APPS = [
     'community',
     'hashtag',
     'category',
-    'chat'
+    'follow',
+    'chat',
+    'draft',
+    'report',
+    'explorer'
 ]
 
 MIDDLEWARE = [
@@ -127,7 +131,7 @@ DATABASES = {
 # DATABASES = {
 # 'default': {
 #             'ENGINE': 'django.db.backends.sqlite3',
-#             'NAME': '/home/huddle/Huddle-Server/Huddle-Server.db'
+#             'NAME':  os.path.join(BASE_DIR, 'Huddle-Server.db')
 #         }
 # }
 
@@ -188,3 +192,4 @@ REST_FRAMEWORK = {
 
 HASHTAG_MAXIMUM_LENGTH = 25
 PCOUNT = 10 # How many posts return for a page of posts
+POST_MAXIMUM_REPORT = 100
