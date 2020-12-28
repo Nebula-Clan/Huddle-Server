@@ -120,7 +120,8 @@ def search_in_communities(request):
 
     if name is None:
         return JsonResponse({"error" : get_error_serialized(103, 'key parameter is required').data}, status = HTTPStatus.BAD_REQUEST)
-    
+    if name == "":
+        return JsonResponse({"communities" : CommunitySmallSerializer(Community.objects.all(), many = True).data})
     data = [(community.name, community.id) for community in Community.objects.all()]
     finded_ids = search(name, data)
 
