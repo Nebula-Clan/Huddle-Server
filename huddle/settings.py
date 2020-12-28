@@ -31,7 +31,7 @@ SECRET_KEY = 'wzpzt#6fe#14y10gug78a5lftfl(mmo*vfa74b5nt*ite=i3uj'
 DEBUG = True
 
 ALLOWED_HOSTS = []
-# ALLOWED_HOSTS = ['172.245.10.238']
+# ALLOWED_HOSTS = ['172.245.10.238', 'nebula-clan.github.io/Huddle-Client']
 CORS_ALLOWED_ORIGINS = [
      "http://localhost:3000",
 ]
