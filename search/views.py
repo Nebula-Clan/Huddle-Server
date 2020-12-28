@@ -92,13 +92,9 @@ def search_in_posts(request):
     if not(hashtag_filter is None):
         finded_ids = PostHashtag.objects.filter(Q(post__in = finded_ids) & Q(hashtag = hashtag_filter_id)).values_list('post', flat = True)
 
-    all_posts_finded = []
-
-    for p_id in finded_ids:
-        for item in Post.objects.filter(id = p_id):
-            all_posts_finded.append(PostSerializer(item, context = {"content_depth" : False}).data)
-
-    return JsonResponse({"posts_finded" : all_posts_finded})
+    all_posts_finded = Post.objects.exclude(Q(title__isnull = True) | Q(title = "") | Q(header_image__isnull = True) | Q(header_image = "") | Q(header_image__icontains = "undefined") | Q(header_image__icontains = "null")).filter(id__in = finded_ids)
+    
+    return JsonResponse({"posts_finded" : PostSerializer(all_posts_finded, many = True, context = {"content_depth" : False}).data})
 
 @api_view(['GET'])
 def search_in_categories(request):
