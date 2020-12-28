@@ -21,6 +21,8 @@ from .home_post_helper import *
 from huddle.settings import PCOUNT
 from category.methods import *
 from draft.models import DraftPost
+from django.db.models import Q
+from follow.models import UserFollowing
 # Create your views here.
 
 @api_view(['POST'])
@@ -251,15 +253,16 @@ def home_posts(request):
         return JsonResponse({"error" : get_error_serialized(110, 'offset must be integer').data})
     
     communities = [com.id for com in user.in_community.all()]
+    followings = [user.following_user for user in UserFollowing.objects.filter(user = user)]
+
     posts = []
     for community_id in communities:
         if (category_filter is None) or (category_filter == ''):
-            posts_temp = Post.objects.filter(community = community_id)
+            posts = Post.objects.filter(Q(community_id__in = communities) | Q(author = user) | Q(author__in = followings))
         else:
-            posts_temp = Post.objects.filter(community = community_id, category = category_filter)
-        for post in posts_temp:
-            posts.append(post)
-    
+            posts = Post.objects.filter(Q(category = category_filter) & (Q(community_id__in = communities) | Q(author = user) | Q(author_id__in = followings)))
+    posts = list(set(posts))
+
     ordered_posts = order_posts(posts, order_key)
     
     if not (offset_str is None):
