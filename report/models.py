@@ -3,9 +3,10 @@ from authentication.models import User
 from posts.models import Post
 
 report_subjects = [
-        (1, 'insult'),
-        (2, 'aggressive'),
-        (3, 'resist'),
+        (1, 'Sexual Content'),
+        (2, 'Insult'),
+        (3, 'Violent'),
+        (4, 'Other'),
     ]
 
 class Reports(models.Model):
@@ -22,6 +23,10 @@ class PostReport(models.Model):
 
 def update_report_subjects():
     for sub in report_subjects:
-        if ReportSubject.objects.filter(text = sub[1]).exists():
+        if ReportSubject.objects.filter(text = sub[1].lower()).exists():
             continue
-        ReportSubject.objects.create(text = sub[1])
+        ReportSubject.objects.create(text = sub[1].lower())
+
+def delete_report_subjects():
+    ReportSubject.objects.all().delete()
+
