@@ -33,7 +33,7 @@ def send_report(request):
         return JsonResponse({"error" : get_error_serialized(100, 'Post not found').data}, status = status.HTTP_404_NOT_FOUND)
     
     if Reports.objects.filter(user = user, post = report_post).exists():
-        return JsonResponse({"error" : get_error_serialized(124).data}, status = status.HTTP_400_BAD_REQUEST)
+        return JsonResponse({"error" : get_error_serialized(115).data}, status = status.HTTP_406_NOT_ACCEPTABLE)
     
     created_report = Reports.objects.create(user = user, post = report_post, description = description)
     for subject in subjects_obj:
