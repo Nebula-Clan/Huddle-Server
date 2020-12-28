@@ -9,6 +9,7 @@ from category.methods import categoryname_mapper, categoryid_mapper
 from errors.error_repository import get_error_serialized
 from rest_framework import status
 from hashtag.models import Hashtag, PostHashtag
+from posts.home_post_helper import order_posts
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -34,8 +35,10 @@ def get_posts(request):
         posts = Post.objects.exclude(Q(title__isnull = True) | Q(title = "") | Q(header_image__isnull = True) | Q(header_image = "") | Q(header_image__icontains = "undefined") | Q(header_image__icontains = "null")).filter(Q(pk__in = posts_id_set), category = category_filter)
     else:
         posts = Post.objects.exclude(Q(title__isnull = True) | Q(title = "") | Q(header_image__isnull = True) | Q(header_image = "") | Q(header_image__icontains = "undefined") | Q(header_image__icontains = "null")).filter(Q(pk__in = posts_id_set))
-        
-    return JsonResponse({"posts":PostSerializer(posts, many = True, context = {"content_depth" : False}).data})
+    
+    posts_ordered = order_posts(list(posts), 'new')
+
+    return JsonResponse({"posts":PostSerializer(posts_ordered, many = True, context = {"content_depth" : False}).data})
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
