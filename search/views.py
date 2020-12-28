@@ -114,7 +114,9 @@ def search_in_categories(request):
 @api_view(['GET'])
 def search_in_communities(request):
     name = request.query_params.get('key', None)
-    if name == "": name = None
+    if name == "":
+        return JsonResponse({"communities" : CommunitySmallSerializer(Community.objects.all(), many = True).data})
+        
 
     if name is None:
         return JsonResponse({"error" : get_error_serialized(103, 'key parameter is required').data}, status = HTTPStatus.BAD_REQUEST)
