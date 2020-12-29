@@ -75,7 +75,7 @@ def get_community_members(request):
     return JsonResponse({"members" : PublicProfileSerializer(members, many = True, context = {"viewer_id" : viewer.id}).data})
 
 @api_view(['GET'])
-@permission_classes(IsAuthenticated)
+@permission_classes([IsAuthenticated])
 def get_community_posts(request):
     viewer = request.user
     cm_name = request.query_params.get('name', None)
@@ -96,7 +96,7 @@ def get_community_posts(request):
 
     if not(offset_str is None):
         posts = posts[PCOUNT * offset: PCOUNT * (offset + 1)]
-    return JsonResponse({"posts" : PostSerializer(posts, context = {"content_depth" : False, "viewer" : user.username}, many = True).data})
+    return JsonResponse({"posts" : PostSerializer(posts, context = {"content_depth" : False, "viewer" : viewer.username}, many = True).data})
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
