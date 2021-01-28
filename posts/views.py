@@ -172,8 +172,7 @@ def get_user_posts(request):
     author_id = author.id
     
     all_posts = list(Post.objects.filter(author = author_id))
-    for post in all_posts:
-        if DraftPost.objects.filter(id = post.id).exists(): all_posts.remove(post)
+    
     all_posts.sort(key = lambda post : post.date_created, reverse = True)
     
     if not(offset_str is None):
@@ -264,8 +263,6 @@ def home_posts(request):
         posts = Post.objects.filter(Q(category = category_filter) & (Q(community_id__in = communities) | Q(author = user) | Q(author_id__in = followings)))
     posts = list(set(posts))
     
-    for post in posts:
-        if DraftPost.objects.filter(id = post.id).exists(): posts.remove(post)
     ordered_posts = order_posts(posts, order_key)
     
     if not (offset_str is None):
