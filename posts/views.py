@@ -49,7 +49,7 @@ def create_post(request, is_draft = False):
     if community_name == '':
         community_name = None
 
-    if category is None or category is "":
+    if category is None or category == "":
         post_category = None
     else:
         if len(category) > 2:
