@@ -142,3 +142,18 @@ def disable_user(request):
     community.disabeled_users.add(dis_user)
 
     return JsonResponse({"message" : "User added to disabeled users successfuly"})
+    
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def is_admin(request):
+    user = request.user
+    communtiy_name = request.query_params.get('community', None)
+    if communtiy_name is None:
+        return JsonResponse({"error" : get_error_serialized(103, '\'community\' field is required').data}, status = status.HTTP_400_BAD_REQUEST)
+    
+    community = Community.objects.filter(name__iexact = communtiy_name.lower()).first()
+    if community is None:
+        return JsonResponse({"error" : get_error_serialized(100, 'Community not found').data}, status = status.HTTP_404_NOT_FOUND)
+    
+    is_admin = community.admin == user
+    return JsonResponse({"is_admin" : is_admin})
