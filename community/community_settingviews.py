@@ -85,7 +85,7 @@ def delete_post(request):
         return JsonResponse({"error" : get_error_serialized(100, 'Post not found').data}, status = status.HTTP_404_NOT_FOUND)
     
     if post.community_id != community.id:
-        return JsonResponse({"error" : get_error_serialized(120).data}, status = status.HTTP_400_BAD_REQUEST)
+        return JsonResponse({"error" : get_error_serialized(116).data}, status = status.HTTP_400_BAD_REQUEST)
     
     post.delete()
 
@@ -112,8 +112,11 @@ def remove_user(request):
         return JsonResponse({"error" : get_error_serialized(100, 'User not found').data}, status = status.HTTP_400_BAD_REQUEST)
     
     if not community.users.filter(username = username).exists():
-        return JsonResponse({"error" : get_error_serialized(121).data}, status = status.HTTP_400_BAD_REQUEST)
+        return JsonResponse({"error" : get_error_serialized(117).data}, status = status.HTTP_400_BAD_REQUEST)
     
+    if del_user == user:
+        return JsonResponse({"error" : get_error_serialized(118).data}, status = status.HTTP_400_BAD_REQUEST)
+
     community.users.remove(del_user)
 
     return JsonResponse({"message" : "User removed from community successfuly"})
@@ -125,6 +128,8 @@ def disable_user(request):
     user = request.user
 
     community_name = request.data.get('community_name', None)
+    if community_name is None:
+        return JsonResponse({"error" : get_error_serialized(103, '\'community_name\' field is required').data}, status = status.HTTP_400_BAD_REQUEST)
 
     community = Community.objects.filter(name__iexact = community_name.lower()).first()
     if community is None:
@@ -142,7 +147,33 @@ def disable_user(request):
     community.disabeled_users.add(dis_user)
 
     return JsonResponse({"message" : "User added to disabeled users successfuly"})
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def enable_user(request):
+    user = request.user
+
+    community_name = request.data.get('community_name', None)
+    if community_name is None:
+        return JsonResponse({"error" : get_error_serialized(103, '\'community_name\' field is required').data}, status = status.HTTP_400_BAD_REQUEST)
+
+    community = Community.objects.filter(name__iexact = community_name.lower()).first()
+    if community is None:
+        return JsonResponse({"error" : get_error_serialized(100, 'Community not found').data}, status = status.HTTP_404_NOT_FOUND)
     
+    if community.admin != user:
+        return JsonResponse({"error" : get_error_serialized(106, 'Only community admin is allowed for this request').data}, status = status.HTTP_404_NOT_FOUND)
+    
+    username = request.data.get('username', None)
+
+    en_user = User.objects.filter(username = username).first()
+    if en_user is None:
+        return JsonResponse({"error" : get_error_serialized(100, 'User not found').data}, status = status.HTTP_400_BAD_REQUEST)
+    
+    community.disabeled_users.remove(en_user)
+
+    return JsonResponse({"message" : "User enabled users successfuly"})
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def is_admin(request):
