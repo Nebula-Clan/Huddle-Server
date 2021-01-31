@@ -24,7 +24,10 @@ errors_list = [
     (112, 'This user already follow requested user'),
     (113, 'Authenticatio failed!'),
     (114, 'Should authorize first.'),
-    (115, 'This user has previously reported the post')
+    (115, 'This user has previously reported the post'),
+    (116, 'This post does not exist in this community'),
+    (117, 'requested user does not exist in this community'),
+    (118, 'Community admin can not remove him/her self')
 ]
 
 def get_error(code):
