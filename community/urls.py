@@ -15,4 +15,5 @@ urlpatterns = [
     url(r'^disable_user', community_settingviews.disable_user),
     url(r'^delete_post', community_settingviews.delete_post),
     url(r'^is_admin', community_settingviews.is_admin),
+    url(r'^enable_user', community_settingviews.enable_user)
 ]
