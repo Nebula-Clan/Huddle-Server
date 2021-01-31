@@ -42,7 +42,7 @@ def create_post(request, is_draft = False):
     hashtags = request.data.get('hashtags')
     
     
-    community = Community.objects.filter(name = community_name).first()
+    community = Community.objects.filter(name__iexact = community_name.lower()).first()
     if community is None and not (community_name is None or community_name == ''):
         return JsonResponse({"error" : ErrorSerializer(get_error(100)).data}, status = status.HTTP_400_BAD_REQUEST)
     
@@ -68,6 +68,8 @@ def create_post(request, is_draft = False):
         to_create_post = DraftPost(title = title, description = description, post_content = post_content,
                                 category = post_category, community = community, author = author)
     else:
+        if not(community_name is None) and community.disabeled_users.filter(username = author.username).exists():
+            return JsonResponse({"error" : get_error_serialized(119).data}, status = status.HTTP_400_BAD_REQUEST)
         to_create_post = Post(title = title, description = description, post_content = post_content,
                                 category = post_category, community = community, author = author)
     to_create_post.save()
