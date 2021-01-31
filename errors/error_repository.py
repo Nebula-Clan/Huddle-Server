@@ -27,7 +27,8 @@ errors_list = [
     (115, 'This user has previously reported the post'),
     (116, 'This post does not exist in this community'),
     (117, 'requested user does not exist in this community'),
-    (118, 'Community admin can not remove him/her self')
+    (118, 'Community admin can not remove him/her self'),
+    (119, 'You are disabled in this community')
 ]
 
 def get_error(code):
