@@ -39,6 +39,8 @@ def send_report(request):
     for subject in subjects_obj:
         PostReport.objects.create(subject = subject, report = created_report)
 
+    report_post.reports_number += 1
+
     return JsonResponse({"message" : f"report to post with id:{post_id} sended"})
 
 @api_view(['GET'])

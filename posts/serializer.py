@@ -61,8 +61,7 @@ class PostSerializer(serializers.ModelSerializer):
         return str(instance.header_image)
 
     def get_is_reported(self, instance):
-        reports_number = Reports.objects.filter(post = instance.id).count()
-        if reports_number >= POST_MAXIMUM_REPORT:
+        if instance.reports_number >= POST_MAXIMUM_REPORT:
             return True
         return False
     
