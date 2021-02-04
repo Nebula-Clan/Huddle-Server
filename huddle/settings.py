@@ -177,7 +177,7 @@ STATIC_URL = '/static/'
 
 AUTH_USER_MODEL = 'authentication.User'
 import datetime
-ACCESS_TOKEN_EXPIRE_TIME = datetime.timedelta(days = 0, hours=2, minutes=0)
+ACCESS_TOKEN_EXPIRE_TIME = datetime.timedelta(days = 0, hours=5, minutes=0)
 REFRESH_TOKEN_EXPIRE_TIME = datetime.timedelta(days = 2, hours=0, minutes=0)
 
 #REST framework 
