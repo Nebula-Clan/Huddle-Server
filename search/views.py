@@ -77,14 +77,14 @@ def search_in_posts(request):
         if not(community_filter is None):
             posts_filtered = posts_filtered.filter(community = community)
         data = []
-        for item in posts_filtered:
+        for item in posts_filtered_:
             data.append((item.title, item.id))
     else:
         posts_filtered_ = Post.objects.all()
         if not(community_filter is None):
             posts_filtered_ = Post.objects.filter(community = community)
         data = []
-        for item in posts_filtered:
+        for item in posts_filtered_:
             data.append((item.title, item.id))
 
     finded_ids = list(set(search(serach_key, data)))
