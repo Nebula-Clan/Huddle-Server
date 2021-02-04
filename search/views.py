@@ -76,16 +76,16 @@ def search_in_posts(request):
         posts_filtered = Post.objects.filter(category = category_filter)
         if not(community_filter is None):
             posts_filtered = posts_filtered.filter(community = community)
-        data_titles = list(posts_filtered.values_list('title', flat = True))
-        data_ids = list(posts_filtered.values_list('id', flat = True))
-        data = [(data_titles[i], data_ids[i]) for i in range(len(data_titles))]
+        data = []
+        for item in posts_filtered_:
+            data.append((item.title, item.id))
     else:
         posts_filtered_ = Post.objects.all()
         if not(community_filter is None):
             posts_filtered_ = Post.objects.filter(community = community)
-        data_titles = list(posts_filtered_.values_list('title', flat = True))
-        data_ids = list(posts_filtered_.values_list('id', flat = True))
-        data = [(data_titles[i], data_ids[i]) for i in range(len(data_titles))]
+        data = []
+        for item in posts_filtered_:
+            data.append((item.title, item.id))
 
     finded_ids = list(set(search(serach_key, data)))
     

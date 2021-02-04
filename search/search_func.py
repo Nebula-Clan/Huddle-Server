@@ -46,12 +46,13 @@ def search(inp, data):
         exp_clean = re.sub('[^A-Za-z0-9]+', '', exp[0]).lower()
         for word in words:
             if word in exp_clean:
+                print(exp_clean)
+                print(word in exp_clean)
+                print(exp[1])
                 finded.append(exp[1])
                 continue
-            if len(word) < 5:
-                continue
-            search_tokens = generate_search_token(word)
-            for search_token in search_tokens:
-                if search_token in exp_clean:
-                    finded.append(exp[1])
+            # search_tokens = generate_search_token(word)
+            # for search_token in search_tokens:
+            #     if search_token in exp_clean:
+            #         finded.append(exp[1])
     return finded
