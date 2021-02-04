@@ -12,6 +12,8 @@ from django.conf import settings
 from .validators import *
 from errors.error_repository import *
 from errors.serializers import ErrorSerializer
+from authentication.authenticators import SimpleAuthenticator
+
 
 # Create your views here.
 @api_view(['POST'])
