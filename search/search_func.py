@@ -48,6 +48,7 @@ def search(inp, data):
             if word in exp_clean:
                 print(exp_clean)
                 print(word in exp_clean)
+                print(exp[1])
                 finded.append(exp[1])
                 continue
             # search_tokens = generate_search_token(word)
