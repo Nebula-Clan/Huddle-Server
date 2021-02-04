@@ -47,7 +47,10 @@ def search(inp, data):
         # exp_clean = re.sub('[^A-Za-z0-9]+', '', exp[0]).lower()
         exp_clean = exp[0]
         for word in words:
-            edit_distances[exp[0]] = min(edit_distances[exp[0]], edit_distance(inp, exp_clean, len(inp), len(exp_clean)))
+            if exp[0] in edit_distances:
+                edit_distances[exp[0]] = min(edit_distances[exp[0]], edit_distance(inp, exp_clean, len(inp), len(exp_clean)))
+            else:
+                edit_distances[exp[0]] = edit_distance(inp, exp_clean, len(inp), len(exp_clean))
     hashtags = sorted(list(data), key= lambda h: search_key(h, edit_distances))
     result = [h[1] for h in hashtags if edit_distances[h[0]] < len(h[0]) / 2 and edit_distances[h[0]] >= 0]
     return result
