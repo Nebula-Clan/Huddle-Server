@@ -14,6 +14,7 @@ class DraftPost(models.Model):
     community = models.ForeignKey('community.Community', on_delete = models.CASCADE, null = True)
     date_created = models.DateTimeField(auto_now = True)
     author = models.ForeignKey('authentication.User', on_delete = models.CASCADE)
+    reports_number = models.IntegerField(default = 0)
 
     def likes_number(self):
         from likes.models import PostLike
