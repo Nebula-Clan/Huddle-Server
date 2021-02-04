@@ -36,22 +36,26 @@ def generate_search_token(word):
     search_tokens.extend(dele)
     return search_tokens
 
-
+from hashtag.edit_distance import edit_distance
 # data is a list of tuples serach function search in first elements and return secend elements
 def search(inp, data):
     inp = inp.lower()
     finded = []
     words = re.split('[^A-Za-z0-9]+', inp)
+    edit_distances = {}
     for exp in data:
         exp_clean = re.sub('[^A-Za-z0-9]+', '', exp[0]).lower()
-        for word in words:
-            if word in exp_clean:
-                finded.append(exp[1])
-                continue
-            if len(word) < 5:
-                continue
-            search_tokens = generate_search_token(word)
-            for search_token in search_tokens:
-                if search_token in exp_clean:
-                    finded.append(exp[1])
-    return finded
+        # for word in words:
+        #     if word in exp_clean:
+        #         finded.append(exp[1])
+        #         continue
+        #     if len(word) < 5:
+        #         continue
+        #     search_tokens = generate_search_token(word)
+        #     for search_token in search_tokens:
+        #         if search_token in exp_clean:
+        #             finded.append(exp[1])
+        edit_distances[exp_clean] = edit_distance(inp, exp_clean, len(inp), len(exp_clean))
+    hashtags = sorted(list(data), key= lambda h: edit_distances[h])
+    result = [h for h in hashtags if edit_distances[h] < len(h.text)]
+    return result
