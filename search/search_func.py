@@ -44,10 +44,10 @@ def search(inp, data):
     words = re.split('[^A-Za-z0-9]+', inp)
     for exp in data:
         exp_clean = re.sub('[^A-Za-z0-9]+', '', exp[0]).lower()
-        print(exp_clean)
         for word in words:
-            print(word in exp_clean)
             if word in exp_clean:
+                print(exp_clean)
+                print(word in exp_clean)
                 finded.append(exp[1])
                 continue
             # search_tokens = generate_search_token(word)
