@@ -44,9 +44,9 @@ def search(inp, data):
     words = re.split('[^A-Za-z0-9]+', inp)
     for exp in data:
         exp_clean = re.sub('[^A-Za-z0-9]+', '', exp[0]).lower()
-        print(words)
+        print(exp_clean)
         for word in words:
-            print(word in words)
+            print(word in exp_clean)
             if word in exp_clean:
                 finded.append(exp[1])
                 continue
