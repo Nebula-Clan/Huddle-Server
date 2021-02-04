@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from django.http.response import JsonResponse
 from django.contrib.auth import get_user_model
 from rest_framework import exceptions, status
@@ -36,7 +36,7 @@ def login_view(request):
     return JsonResponse({"access_token": access_token, "refresh_token": refresh_token})
 
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@authentication_classes([SimpleAuthenticator])
 def register_view(request):
     if request.method == 'POST':
     
