@@ -56,6 +56,6 @@ def search(inp, data):
         #         if search_token in exp_clean:
         #             finded.append(exp[1])
         edit_distances[exp_clean] = edit_distance(inp, exp_clean, len(inp), len(exp_clean))
-    hashtags = sorted(list(data), key= lambda h: edit_distances[h])
+    hashtags = sorted(list(data), key= lambda h: edit_distances[h[0]])
     result = [h for h in hashtags if edit_distances[h] < len(h.text)]
     return result
