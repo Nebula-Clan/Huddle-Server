@@ -26,8 +26,9 @@ class ChatConsumer(WebsocketConsumer):
         if(self.user is not None and not self.user.is_anonymous):
             Clients.objects.filter(username=self.user.id, channel_name=self.channel_name).delete()
             last_seen_data = LastSeen.objects.filter(user=self.user).first()
-            if(last_seen_data is None):
-                last_seen_data = LastSeen.objects.create(user=self.user)
+            if(last_seen_data is not None):
+                last_seen_data.delete()
+            last_seen_data = LastSeen.objects.create(user=self.user)
             # last_seen_data.last_seen = now()/
             last_seen_data.save()
             self.user = None
