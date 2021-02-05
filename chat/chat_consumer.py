@@ -17,7 +17,10 @@ class ChatConsumer(WebsocketConsumer):
         self.room_name = self.scope['url_route']['kwargs']['room_name']
         print(self.channel_name)
         self.user = None
-        self.accept()
+        try:
+            self.accept()
+        except:
+            pass
 
     def disconnect(self, close_code):
         if(self.user is not None and not self.user.is_anonymous):
