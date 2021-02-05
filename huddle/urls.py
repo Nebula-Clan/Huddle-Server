@@ -14,8 +14,42 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
-
+from django.urls import path, include
+import authentication.urls as auth_urls
+import likes.urls as likes_urls
+import user_profile.urls as profile_urls
+import posts.urls as posts_urls
+import search.urls as search_urls
+import comment.urls as commnt_urls
+import community.urls as community_urls
+import hashtag.urls as hashtag_urls
+import category.urls as category_urls
+import follow.urls as follow_urls
+import draft.urls as draft_urls
+import chat.urls as chat_urls
+import report.urls as report_urls
+import explorer.urls as explorer_urls
+from django.conf.urls import url
+from . import settings
+from django.conf.urls.static import static
+from huddle.startup import remove_all_clients
 urlpatterns = [
     path('admin/', admin.site.urls),
+    url(r'^api/auth/', include(auth_urls)),
+    url(r'^api/likes/', include(likes_urls)),
+    url(r'^api/comments/', include(commnt_urls)),
+    url(r'^api/profile/', include(profile_urls)),
+    url(r'^api/posts/', include(posts_urls)),
+    url(r'^api/search/', include(search_urls)),
+    url(r'^api/community/', include(community_urls)),
+    url(r'^api/hashtag/', include(hashtag_urls)),
+    url(r'^api/category/', include(category_urls)),
+    url(r'^api/follow/', include(follow_urls)),
+    url(r'^api/draft/', include(draft_urls)),
+    url(r'^api/chat/', include(chat_urls)),
+    url(r'^api/report/', include(report_urls)),
+    url(r'^api/explorer/', include(explorer_urls)),
 ]
+remove_all_clients()
+if(settings.DEBUG):
+    urlpatterns +=  static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
