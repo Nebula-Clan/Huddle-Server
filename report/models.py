@@ -7,7 +7,7 @@ report_subjects = [
         (2, 'Insult'),
         (3, 'Violent'),
         (4, 'Other'),
-        (5, 'Racist'),
+        (5, 'Racism'),
     ]
 
 class Reports(models.Model):
