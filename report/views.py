@@ -40,6 +40,7 @@ def send_report(request):
         PostReport.objects.create(subject = subject, report = created_report)
 
     report_post.reports_number += 1
+    report_post.save(update_fields = ['reports_number'])
 
     return JsonResponse({"message" : f"report to post with id:{post_id} sended"})
 
