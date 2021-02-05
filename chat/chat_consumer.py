@@ -54,10 +54,10 @@ class ChatConsumer(WebsocketConsumer):
             last_seen_data = LastSeen.objects.create(user=self.user)
         # last_seen_data.last_seen = now()
         last_seen_data.save()
-        record = Clients.objects.filter(username=user.username, authentication_key=token, channel_name=self.channel_name)
+        record = Clients.objects.filter(username=user, authentication_key=token, channel_name=self.channel_name)
         for q in record:
             q.delete()
-        Clients.objects.create(username=user.username, authentication_key=token, channel_name=self.channel_name)
+        Clients.objects.create(username=user, authentication_key=token, channel_name=self.channel_name)
         
         self.send(json.dumps({"type" : "chat.authenticate", "message" : "Authenticatied."}))
     
