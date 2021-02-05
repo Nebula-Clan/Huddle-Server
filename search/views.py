@@ -99,10 +99,11 @@ def search_in_posts(request):
 @api_view(['GET'])
 def search_in_categories(request):
     category_text = request.query_params.get('key', None)
-    if category_text == "": category_text = None
+    if category_text == "":
+        return JsonResponse({"categories" : CategorySerializer(Category.objects.all(), many = True).data})
 
     if category_text is None:
-        return JsonResponse({"error" : get_error_serialized(103, 'key parameter is required')}, status = HTTPStatus.BAD_REQUEST)
+        return JsonResponse({"error" : get_error_serialized(103, 'key parameter is required').data}, status = HTTPStatus.BAD_REQUEST)
     
     data = [(cat[1], cat[0]) for cat in categories]
     finded_ids = search(category_text, data)
