@@ -17,17 +17,19 @@ class ChatConsumer(WebsocketConsumer):
         self.room_name = self.scope['url_route']['kwargs']['room_name']
         print(self.channel_name)
         self.user = None
+        self.token = None
         self.accept()
 
     def disconnect(self, close_code):
         if(self.user is not None and not self.user.is_anonymous):
-            Clients.objects.filter(username=self.user.id, channel_name=self.channel_name).delete()
+            Clients.objects.filter(username=self.user.id, authentication_key=self.token, channel_name=self.channel_name).delete()
             last_seen_data = LastSeen.objects.filter(user=self.user).first()
             if(last_seen_data is None):
                 last_seen_data = LastSeen.objects.create(user=self.user)
             # last_seen_data.last_seen = now()/
             last_seen_data.save()
             self.user = None
+            self.token = None
 
     def receive(self, text_data):
         text_data_json = json.loads(text_data)
@@ -38,6 +40,7 @@ class ChatConsumer(WebsocketConsumer):
         token = event.get('access_token', None)
         user = authenticate(token)
         self.user = user
+        self.token = token
         if(user.is_anonymous):
             self.send(json.dumps({"error" : get_error_serialized(AUTHENTICATION_FAILED).data}))
             self.close()
@@ -51,10 +54,10 @@ class ChatConsumer(WebsocketConsumer):
             last_seen_data = LastSeen.objects.create(user=self.user)
         # last_seen_data.last_seen = now()
         last_seen_data.save()
-        record = Clients.objects.filter(username=user.username, channel_name=self.channel_name)
+        record = Clients.objects.filter(username=user.username, authentication_key=token, channel_name=self.channel_name)
         for q in record:
             q.delete()
-        Clients.objects.create(username=user.username, channel_name=self.channel_name)
+        Clients.objects.create(username=user.username, authentication_key=token, channel_name=self.channel_name)
         
         self.send(json.dumps({"type" : "chat.authenticate", "message" : "Authenticatied."}))
     

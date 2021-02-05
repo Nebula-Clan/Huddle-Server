@@ -21,6 +21,7 @@ class LastSeen(models.Model):
 class Clients(models.Model):
     channel_name = models.TextField(max_length=1000)
     username = models.ForeignKey(User, on_delete=models.CASCADE)
+    authentication_key =  models.TextField(max_length=1000)
 
 
 def get_chat_dir(instance, filename):
